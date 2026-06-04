@@ -39,3 +39,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+\n# Stitch MCP generated designs (local only)\nsrc/stitch_designs/
