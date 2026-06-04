@@ -1,0 +1,26 @@
+# Kota Skillz - AI context files (do not commit)
+kota-skillz/
+
+# Environment variables (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
