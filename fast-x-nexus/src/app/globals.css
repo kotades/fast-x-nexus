@@ -2,25 +2,22 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111827;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  /* Brand color tokens matching Fast X Nexus logo */
+  --color-brand-green: #347227;
+  --color-brand-gold: #E4A800;
+  --color-brand-bg: #ffffff;
+  --color-brand-surface: #f9fafb;
+  --color-brand-border: #e5e7eb;
+  --color-brand-text: #111827;
+  --color-brand-muted: #4b5563;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }

@@ -1,9 +1,9 @@
 /**
  * /src/app/login/page.tsx
- * Fast X Nexus — Login / Authentication Page
+ * Fast X Nexus — Login / Authentication Page (Light Theme)
  *
- * Design: Industrial Monolith — dark, sharp, high contrast.
- * Mobile-first. No decorative elements. Every pixel earns its place.
+ * Design: Light Industrial Monolith — light background, sharp borders, high contrast.
+ * Mobile-first. Every pixel earns its place.
  */
 
 import { Metadata } from 'next';
@@ -16,16 +16,17 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen bg-[#0D1117] flex flex-col">
+    <main className="min-h-screen bg-brand-surface flex flex-col">
 
       {/* ── Top accent bar ─────────────────────────────────────────── */}
-      <div className="h-[3px] w-full bg-[#22C55E]" />
+      <div className="h-[3px] w-full bg-brand-green" />
 
       {/* ── Header ─────────────────────────────────────────────────── */}
-      <header className="px-6 py-5 border-b border-[#1F2937]">
-        <span className="text-[#F9FAFB] font-bold text-lg tracking-tight">
-          FAST<span className="text-[#22C55E]">X</span>
-          <span className="text-[#6B7280] font-normal text-xs ml-2 tracking-widest">NEXUS</span>
+      <header className="px-6 py-5 border-b border-brand-border bg-brand-bg">
+        <span className="text-brand-text font-bold text-lg tracking-tight flex items-center gap-1.5">
+          <span>FAST<span className="text-brand-green">X</span></span>
+          <span className="text-brand-text font-bold text-lg">N<span className="text-brand-gold">E</span>XUS</span>
+          <span className="text-brand-muted font-normal text-xs ml-2 tracking-widest uppercase">Services</span>
         </span>
       </header>
 
@@ -34,17 +35,17 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
 
           {/* Card */}
-          <div className="bg-[#111827] border border-[#1F2937] border-l-[3px] border-l-[#22C55E] p-8">
+          <div className="bg-brand-bg border border-brand-border border-l-[3px] border-l-brand-green p-8 shadow-sm">
 
             {/* Heading */}
             <div className="mb-8">
-              <p className="text-xs font-semibold text-[#22C55E] tracking-widest uppercase mb-2">
+              <p className="text-xs font-semibold text-brand-green tracking-widest uppercase mb-2">
                 Secure Access
               </p>
-              <h1 className="text-2xl font-bold text-[#F9FAFB] leading-tight">
+              <h1 className="text-2xl font-bold text-brand-text leading-tight">
                 Enter the Nexus
               </h1>
-              <p className="mt-2 text-sm text-[#6B7280]">
+              <p className="mt-2 text-sm text-brand-muted">
                 Enter your WhatsApp-enabled number to receive a one-time code.
               </p>
             </div>
@@ -55,13 +56,13 @@ export default function LoginPage() {
           </div>
 
           {/* Footer note */}
-          <p className="mt-6 text-center text-xs text-[#4B5563]">
+          <p className="mt-6 text-center text-xs text-brand-muted">
             By signing in, you agree to the{' '}
-            <a href="/terms" className="text-[#6B7280] hover:text-[#9CA3AF] underline transition-colors">
+            <a href="/terms" className="text-brand-text hover:text-brand-green underline transition-colors">
               Terms of Service
             </a>
             {' '}and{' '}
-            <a href="/privacy" className="text-[#6B7280] hover:text-[#9CA3AF] underline transition-colors">
+            <a href="/privacy" className="text-brand-text hover:text-brand-green underline transition-colors">
               Privacy Policy
             </a>
             .
@@ -70,10 +71,10 @@ export default function LoginPage() {
       </div>
 
       {/* ── Bottom status bar ──────────────────────────────────────── */}
-      <footer className="px-6 py-4 border-t border-[#1F2937] flex items-center justify-between">
-        <span className="text-xs text-[#4B5563]">© 2025 Fast X Nexus Services</span>
-        <span className="flex items-center gap-1.5 text-xs text-[#4B5563]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
+      <footer className="px-6 py-4 border-t border-brand-border bg-brand-bg flex items-center justify-between">
+        <span className="text-xs text-brand-muted">© 2025 Fast X Nexus Services</span>
+        <span className="flex items-center gap-1.5 text-xs text-brand-muted">
+          <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
           Systems Operational
         </span>
       </footer>
