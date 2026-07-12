@@ -95,9 +95,9 @@ export async function createBooking(
   const { data: orderId, error: rpcError } = await adminClient.rpc(
     'create_order_with_ledger',
     {
-      p_sender_id: user.id,
-      p_pickup_h3: pickup_h3,
-      p_metadata: metadata,
+      p_customer_id: user.id,
+      p_pickup_h3_cell: pickup_h3,
+      p_dropoff_h3_cell: metadata?.destination_label || pickup_h3,
       p_amount: amount,
     }
   );
@@ -112,3 +112,63 @@ export async function createBooking(
 
   return { success: true, data: { order_id: orderId as string } };
 }
+
+/**
+ * Simulates a gateway payment success (for development/testing).
+ * Directly transitions order from PLACED to PAID_UNASSIGNED using the service client.
+ */
+export async function simulatePaymentSuccess(orderId: string): Promise<ActionResult<{ order_id: string; status: string }>> {
+  const adminClient = await createAdminClient();
+  
+  const { data: order, error: orderError } = await adminClient
+    .from('orders')
+    .select('total_amount, customer_id')
+    .eq('id', orderId)
+    .single();
+
+  if (orderError || !order) {
+    return { success: false, error: 'Order not found.' };
+  }
+
+  const { data, error: transitionError } = await adminClient.rpc(
+    'process_order_state_transition',
+    {
+      target_order_id: orderId,
+      next_status: 'PAID_UNASSIGNED',
+    }
+  );
+
+  if (transitionError) {
+    console.error('[simulatePaymentSuccess] Transition failed:', transitionError);
+    return { success: false, error: `Transition failed: ${transitionError.message}` };
+  }
+
+  // Fetch customer profile to notify them via WhatsApp
+  const { data: customerProfile } = await adminClient
+    .from('profiles')
+    .select('whatsapp_contact')
+    .eq('id', order.customer_id)
+    .single();
+
+  if (customerProfile?.whatsapp_contact) {
+    const cleanPhone = customerProfile.whatsapp_contact.startsWith('+') 
+      ? customerProfile.whatsapp_contact 
+      : `+${customerProfile.whatsapp_contact}`;
+      
+    const alertMessage = `📦 Fast X Dispatch Alert: Order ${orderId} has been paid successfully (₦${Number(order.total_amount).toFixed(2)}). Logistics Waybill generated. Package is waiting in the pool for rider pickup.`;
+    const workerUrl = process.env.WHATSAPP_WORKER_URL || 'http://localhost:3001/send-message';
+
+    try {
+      await fetch(workerUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: cleanPhone, message: alertMessage }),
+      });
+    } catch (dispatchError) {
+      console.error('[simulatePaymentSuccess] Failed to contact WhatsApp worker:', dispatchError);
+    }
+  }
+
+  return { success: true, data: { order_id: orderId, status: 'PAID_UNASSIGNED' } };
+}
+

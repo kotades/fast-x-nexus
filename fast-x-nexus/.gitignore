@@ -1,6 +1,24 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# === ENVIRONMENT & SECRETS (NEVER COMMIT) ===
+.env
+.env.local
+.env.*.local
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
 
-# dependencies
+# === OAUTH & SERVICE ACCOUNTS ===
+client_secret_*.json
+*service-account*.json
+*credentials*.json
+.whatsapp-auth/
+
+# === ENCRYPTED/SENSITIVE FILES ===
+*.enc
+
+# === DEPENDENCIES ===
 /node_modules
 /.pnp
 .pnp.*
@@ -9,34 +27,74 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# testing
-/coverage
-
-# next.js
+# === NEXT.JS ===
 /.next/
 /out/
 
-# production
+# === BUILD & PRODUCTION ===
 /build
+dist/
 
-# misc
-.DS_Store
-*.pem
+# === TESTING ===
+/coverage
+.nyc_output/
+*.lcov
 
-# debug
+# === LOGS ===
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+lerna-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# === OS FILES ===
+.DS_Store
+*.pem
+Thumbs.db
 
-# vercel
-.vercel
+# === EDITOR & IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+.history/
+.vs/
 
-# typescript
+# === TYPESCRIPT ===
 *.tsbuildinfo
 next-env.d.ts
-\n# Stitch MCP generated designs (local only)\nsrc/stitch_designs/
+
+# === NODE ===
+npm-cache/
+.npm
+.eslintcache
+.node_repl_history
+
+# === RUNTIME ===
+tmp/
+temp/
+
+# === VERCEL ===
+.vercel
+
+# === KOTA SKILLZ & AI CONTEXT ===
+kota-skillz/
+.agents/
+
+# === SUPABASE ===
+supabase/.temp/
+
+# === LOCAL STITCH DESIGNS ===
+src/stitch_designs/
+.env*

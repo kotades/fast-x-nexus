@@ -1,84 +1,83 @@
+'use client';
+
 /**
  * /src/app/login/page.tsx
- * Fast X Nexus — Login / Authentication Page (Light Theme)
+ * Fast X Nexus — Login / Authentication Page
  *
- * Design: Light Industrial Monolith — light background, sharp borders, high contrast.
- * Mobile-first. Every pixel earns its place.
+ * Updated with landing page animation strategy, gradient background,
+ * and standard header/footer.
  */
 
-import { Metadata } from 'next';
-import { PhoneAuthForm } from '@/components/auth/PhoneAuthForm';
-
-export const metadata: Metadata = {
-  title: 'Sign In — Fast X Nexus',
-  description: 'Access the Fast X Nexus logistics command centre.',
-};
+import React, { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { AuthForm } from '@/components/auth/AuthForm';
+import { LandingHeader } from '@/components/Header/LandingHeader';
+import { Footer } from '@/components/Footer/Footer';
+import { GlassCard } from '@/components/landing/ui/GlassCard';
 
 export default function LoginPage() {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
+
   return (
-    <main className="min-h-screen bg-brand-surface flex flex-col">
+    <div className="flex flex-col min-h-screen bg-[var(--color-surface)]">
+      <LandingHeader />
 
-      {/* ── Top accent bar ─────────────────────────────────────────── */}
-      <div className="h-[3px] w-full bg-brand-green" />
+      <main 
+        ref={ref}
+        className="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white py-16 lg:py-24"
+      >
+        {/* Floating abstract orbs */}
+        <div className="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/4" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-[var(--color-accent)]/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
 
-      {/* ── Header ─────────────────────────────────────────────────── */}
-      <header className="px-6 py-5 border-b border-brand-border bg-brand-bg">
-        <span className="text-brand-text font-bold text-lg tracking-tight flex items-center gap-1.5">
-          <span>FAST<span className="text-brand-green">X</span></span>
-          <span className="text-brand-text font-bold text-lg">N<span className="text-brand-gold">E</span>XUS</span>
-          <span className="text-brand-muted font-normal text-xs ml-2 tracking-widest uppercase">Services</span>
-        </span>
-      </header>
+        <div className="max-w-md w-full mx-auto relative z-10 px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6 }}
+          >
+            <GlassCard className="p-8 border-l-4 border-l-[var(--color-primary)] bg-[var(--color-surface-elevated)] !text-[var(--color-text)]">
+              {/* Heading */}
+              <div className="mb-8 text-center">
+                <p className="text-xs font-semibold text-[var(--color-primary)] tracking-widest uppercase mb-2">
+                  Secure Access
+                </p>
+                <h1 className="text-3xl font-black text-[var(--color-text)] leading-tight">
+                  Enter the Nexus
+                </h1>
+                <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+                  Secure access via Google, Email, or WhatsApp.
+                </p>
+              </div>
 
-      {/* ── Main layout: centered card ──────────────────────────────── */}
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-sm">
+              {/* Auth Form */}
+              <AuthForm />
 
-          {/* Card */}
-          <div className="bg-brand-bg border border-brand-border border-l-[3px] border-l-brand-green p-8 shadow-sm">
-
-            {/* Heading */}
-            <div className="mb-8">
-              <p className="text-xs font-semibold text-brand-green tracking-widest uppercase mb-2">
-                Secure Access
+              {/* Footer note */}
+              <p className="mt-6 text-center text-xs text-[var(--color-text-muted)]">
+                By signing in, you agree to the{' '}
+                <a href="/terms" className="text-[var(--color-text)] hover:text-[var(--color-primary)] underline transition-colors">
+                  Terms of Service
+                </a>
+                {' '}and{' '}
+                <a href="/privacy" className="text-[var(--color-text)] hover:text-[var(--color-primary)] underline transition-colors">
+                  Privacy Policy
+                </a>
+                .
               </p>
-              <h1 className="text-2xl font-bold text-brand-text leading-tight">
-                Enter the Nexus
-              </h1>
-              <p className="mt-2 text-sm text-brand-muted">
-                Enter your WhatsApp-enabled number to receive a one-time code.
-              </p>
-            </div>
-
-            {/* Auth Form */}
-            <PhoneAuthForm />
-
-          </div>
-
-          {/* Footer note */}
-          <p className="mt-6 text-center text-xs text-brand-muted">
-            By signing in, you agree to the{' '}
-            <a href="/terms" className="text-brand-text hover:text-brand-green underline transition-colors">
-              Terms of Service
-            </a>
-            {' '}and{' '}
-            <a href="/privacy" className="text-brand-text hover:text-brand-green underline transition-colors">
-              Privacy Policy
-            </a>
-            .
-          </p>
+            </GlassCard>
+          </motion.div>
         </div>
-      </div>
+        
+        {/* Diagonal structural element */}
+        <div
+          className="absolute bottom-0 right-0 z-20 h-16 w-1/3 bg-[var(--color-surface)]"
+          style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
+        />
+      </main>
 
-      {/* ── Bottom status bar ──────────────────────────────────────── */}
-      <footer className="px-6 py-4 border-t border-brand-border bg-brand-bg flex items-center justify-between">
-        <span className="text-xs text-brand-muted">© 2025 Fast X Nexus Services</span>
-        <span className="flex items-center gap-1.5 text-xs text-brand-muted">
-          <span className="w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
-          Systems Operational
-        </span>
-      </footer>
-
-    </main>
+      <Footer />
+    </div>
   );
 }

@@ -1,23 +1,366 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   FAST X NEXUS — DESIGN TOKEN SYSTEM
+   Architecture: Primitive → Semantic → Component (3-Layer)
+   Source: ckm:design-system token architecture + Kota Skillz scales
+   ========================================================================== */
+
+/* ==========================================================================
+   LAYER 1: PRIMITIVE TOKENS
+   Raw design values. These rarely change.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #111827;
+  /* ── Color: Forest Green Scale (Brand Primary) ── */
+  --color-forest-50:  #f0f5ed;
+  --color-forest-100: #d1e4c9;
+  --color-forest-200: #b3d3a5;
+  --color-forest-300: #94c181;
+  --color-forest-400: #75b05d;
+  --color-forest-500: #559f39;
+  --color-forest-600: #347227; /* Brand green — base */
+  --color-forest-700: #1a5910; /* Hover / active */
+  --color-forest-800: #012200; /* Deepest */
+  --color-forest-900: #001a00;
+
+  /* ── Color: Gold Scale (Secondary Accent) ── */
+  --color-gold-50:  #fffbe6;
+  --color-gold-100: #fff3b0;
+  --color-gold-200: #fde047;
+  --color-gold-300: #facc15;
+  --color-gold-400: #eab308;
+  --color-gold-500: #ca8a04;
+  --color-gold-600: #7a5900; /* Dark gold for text on light */
+
+  /* ── Color: Slate Grey Scale (Neutral Canvas) ── */
+  --color-slate-50:  #f8f9fa;
+  --color-slate-100: #f3f4f5;
+  --color-slate-200: #e7e8e9;
+  --color-slate-300: #d9dadb;
+  --color-slate-400: #a0a2a3;
+  --color-slate-500: #717a6b;
+  --color-slate-600: #41493d;
+  --color-slate-700: #2e3132;
+  --color-slate-800: #191c1d;
+  --color-slate-900: #0f1112;
+
+  /* ── Color: Semantic Status ── */
+  --color-red-50:   #ffdad6;
+  --color-red-500:  #ba1a1a;
+  --color-red-600:  #93000a;
+  --color-green-50: #dcfce7;
+  --color-green-500: #16a34a;
+  --color-green-600: #15803d;
+  --color-yellow-50: #fef9c3;
+  --color-yellow-500: #eab308;
+  --color-yellow-600: #ca8a04;
+
+  /* ── Spacing Scale (Base-16, exponential) ── */
+  --space-0:   0px;
+  --space-1:   0.25rem;  /*  4px */
+  --space-2:   0.5rem;   /*  8px */
+  --space-3:   0.75rem;  /* 12px */
+  --space-4:   1rem;     /* 16px — base */
+  --space-5:   1.5rem;   /* 24px */
+  --space-6:   2rem;     /* 32px */
+  --space-7:   3rem;     /* 48px */
+  --space-8:   4rem;     /* 64px */
+  --space-9:   6rem;     /* 96px */
+  --space-10:  8rem;     /* 128px */
+
+  /* ── Typography: Font Sizes (rem-based) ── */
+  --text-xs:    0.75rem;   /* 12px */
+  --text-sm:    0.875rem;  /* 14px */
+  --text-base:  1rem;      /* 16px */
+  --text-lg:    1.125rem;  /* 18px */
+  --text-xl:    1.25rem;   /* 20px */
+  --text-2xl:   1.5rem;    /* 24px */
+  --text-3xl:   1.875rem;  /* 30px */
+  --text-4xl:   2.25rem;   /* 36px */
+  --text-5xl:   3rem;      /* 48px */
+  --text-6xl:   4rem;      /* 64px — for tracking numbers */
+
+  /* ── Typography: Line Heights ── */
+  --leading-none:    1;
+  --leading-tight:   1.1;
+  --leading-snug:    1.25;
+  --leading-normal:  1.375;
+  --leading-relaxed: 1.5;
+  --leading-loose:   1.625;
+
+  /* ── Typography: Font Weights ── */
+  --weight-normal:    400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+  --weight-black:     900;
+
+  /* ── Typography: Letter Spacing ── */
+  --tracking-tighter: -0.05em;
+  --tracking-tight:   -0.025em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.025em;
+  --tracking-wider:   0.05em;
+  --tracking-widest:  0.1em;
+
+  /* ── Border Radius (Industrial = sharp) ── */
+  --radius-none:  0px;
+  --radius-sm:    2px;
+  --radius-md:    4px;
+  --radius-lg:    8px;
+  --radius-xl:    12px;
+  --radius-2xl:   16px;
+  --radius-full:  9999px;
+
+  /* ── Shadows (Dual-layer: direct + ambient) ── */
+  --shadow-sm:  0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md:  0 4px 6px -1px rgb(0 0 0 / 0.07),
+                0 2px 4px -2px rgb(0 0 0 / 0.06);
+  --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.1),
+                0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --shadow-xl:  0 20px 25px -5px rgb(0 0 0 / 0.15),
+                0 8px 10px -6px rgb(0 0 0 / 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  /* ── Motion / Duration ── */
+  --duration-75:   75ms;
+  --duration-100:  100ms;
+  --duration-150:  150ms;
+  --duration-200:  200ms;
+  --duration-300:  300ms;
+  --duration-400:  400ms;
+  --duration-500:  500ms;
+  --duration-700:  700ms;
+  --duration-1000: 1000ms;
+
+  /* ── Z-Index Scale ── */
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-overlay:  300;
+  --z-modal:    400;
+  --z-popover:  500;
+  --z-tooltip:  600;
 }
+
+/* ==========================================================================
+   LAYER 2: SEMANTIC TOKENS
+   Purpose-based aliases. These change for theme switching (light/dark).
+   ========================================================================== */
+
+:root {
+  /* ── Surfaces ── */
+  --color-surface:            var(--color-slate-50);
+  --color-surface-low:        var(--color-slate-100);
+  --color-surface-dim:        var(--color-slate-300);
+  --color-surface-elevated:   #ffffff;
+
+  /* ── Brand ── */
+  --color-primary:            var(--color-forest-600);
+  --color-primary-hover:      var(--color-forest-700);
+  --color-primary-disabled:   var(--color-forest-200);
+  --color-primary-muted:      var(--color-forest-100);
+  --color-primary-text:       #ffffff;
+  --color-accent:             var(--color-gold-300);
+  --color-accent-hover:       var(--color-gold-400);
+  --color-accent-text:        var(--color-forest-800);
+
+  /* ── Text ── */
+  --color-text:               var(--color-slate-800);
+  --color-text-muted:         var(--color-slate-600);
+  --color-text-dim:           var(--color-slate-500);
+  --color-text-inverse:       #ffffff;
+  --color-text-on-primary:    #ffffff;
+
+  /* ── Border ── */
+  --color-border:             var(--color-slate-200);
+  --color-border-strong:      var(--color-slate-500);
+  --color-border-focus:       var(--color-primary);
+
+  /* ── Semantic States ── */
+  --color-error:              var(--color-red-500);
+  --color-error-bg:           var(--color-red-50);
+  --color-success:            var(--color-green-500);
+  --color-success-bg:         var(--color-green-50);
+  --color-warning:            var(--color-yellow-500);
+  --color-warning-bg:         var(--color-yellow-50);
+
+  /* ── Interactive States (from ckm:design-system states-and-variants) ── */
+  --state-hover-opacity:      0.08;
+  --state-focus-ring:         var(--color-primary);
+  --state-focus-ring-width:   2px;
+  --state-focus-ring-offset:  2px;
+  --state-disabled-opacity:   0.5;
+  --state-active-scale:       0.97;
+
+  /* ── Glass Panel ── */
+  --glass-bg:                 rgba(255, 255, 255, 0.85);
+  --glass-border:             rgba(225, 227, 228, 0.5);
+  --glass-blur:               12px;
+}
+
+/* ==========================================================================
+   LAYER 3: COMPONENT TOKENS (Defined per component in their files)
+   Example:
+   --button-bg: var(--color-primary);
+   --button-text: var(--color-text-on-primary);
+   These live in the component CSS modules or inline Tailwind classes.
+   ========================================================================== */
+
+/* ==========================================================================
+   TAILWIND v4 THEME EXTENSION
+   Maps semantic tokens to Tailwind utility classes.
+   ========================================================================== */
 
 @theme {
-  /* Brand color tokens matching Fast X Nexus logo */
-  --color-brand-green: #347227;
-  --color-brand-gold: #E4A800;
-  --color-brand-bg: #ffffff;
-  --color-brand-surface: #f9fafb;
-  --color-brand-border: #e5e7eb;
-  --color-brand-text: #111827;
-  --color-brand-muted: #4b5563;
+  /* ── Colors: Semantic ── */
+  --color-surface:          var(--color-surface);
+  --color-surface-low:      var(--color-surface-low);
+  --color-surface-dim:      var(--color-surface-dim);
+  --color-surface-elevated: var(--color-surface-elevated);
+
+  --color-primary:          var(--color-primary);
+  --color-primary-hover:    var(--color-primary-hover);
+  --color-primary-disabled: var(--color-primary-disabled);
+  --color-primary-muted:    var(--color-primary-muted);
+  --color-primary-text:     var(--color-primary-text);
+
+  --color-accent:           var(--color-accent);
+  --color-accent-hover:     var(--color-accent-hover);
+  --color-accent-text:      var(--color-accent-text);
+
+  --color-text:             var(--color-text);
+  --color-text-muted:       var(--color-text-muted);
+  --color-text-dim:         var(--color-text-dim);
+  --color-text-inverse:     var(--color-text-inverse);
+
+  --color-border:           var(--color-border);
+  --color-border-strong:    var(--color-border-strong);
+  --color-border-focus:     var(--color-border-focus);
+
+  --color-error:            var(--color-error);
+  --color-error-bg:         var(--color-error-bg);
+  --color-success:          var(--color-success);
+  --color-success-bg:       var(--color-success-bg);
+  --color-warning:          var(--color-warning);
+  --color-warning-bg:       var(--color-warning-bg);
+
+  /* ── Legacy brand tokens (backward compatibility) ── */
+  --color-brand-green:      #347227;
+  --color-brand-gold:       #E4A800;
+
+  /* ── Fonts ── */
+  --font-sans:              'JetBrains Mono', monospace;
+  --font-mono:              'JetBrains Mono', monospace;
+
+  /* ── Tracking ── */
+  --tracking-tighter:       -0.05em;
+  --tracking-tight:         -0.025em;
+  --tracking-wide:          0.05em;
+  --tracking-wider:         0.1em;
+  --tracking-widest:        0.15em;
+
+  /* ── Custom Animations ── */
+  --animate-shimmer:        shimmer 2s ease-in-out infinite;
+  --animate-pulse-soft:     pulse-soft 2s ease-in-out infinite;
+  --animate-slide-up:       slide-up 0.3s ease-out;
+  --animate-fade-in:        fade-in 0.2s ease-out;
 }
 
+/* ==========================================================================
+   CUSTOM KEYFRAMES
+   ========================================================================== */
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ==========================================================================
+   BASE STYLES
+   ========================================================================== */
+
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Selection ── */
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+/* ── Focus Ring (Global accessibile focus) ── */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--state-focus-ring-offset) var(--color-surface),
+              0 0 0 calc(var(--state-focus-ring-offset) + var(--state-focus-ring-width)) var(--state-focus-ring);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ── Material Symbols ── */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  line-height: 1;
+}
+
+.material-symbols-outlined.fill {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Hex Pattern Background (from Stitch Design) ── */
+.hex-pattern {
+  background-color: var(--color-surface);
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='103.92304845413264' viewBox='0 0 60 103.92304845413264' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l30 17.32050807568877v34.64101615137754L30 69.28203230275508 0 51.96152422706631V17.32050807568877z' fill-opacity='0' stroke='%23e1e3e4' stroke-width='1'/%3E%3Cpath d='M30 103.92304845413264l30-17.32050807568877V51.96152422706631L30 34.64101615137754 0 51.96152422706631v34.64101615137754z' fill-opacity='0' stroke='%23e1e3e4' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+/* ── Glass Panel (from Stitch Design) ── */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+/* ── Spring Physics Transition (Shared) ── */
+.spring-transition {
+  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
