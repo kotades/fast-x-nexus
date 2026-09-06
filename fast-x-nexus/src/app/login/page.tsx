@@ -59,6 +59,17 @@ export default function LoginPage() {
               {/* Auth Form */}
               <AuthForm />
 
+              {/* Admin Portal Quicklink */}
+              <div className="mt-6 pt-5 border-t border-[var(--color-border)] text-center">
+                <a
+                  href="/login/admin"
+                  className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-[var(--color-primary)] hover:underline transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm" aria-hidden="true">admin_panel_settings</span>
+                  <span>Operations Staff? Enter Admin Portal &rarr;</span>
+                </a>
+              </div>
+
               {/* Footer note */}
               <p className="mt-6 text-center text-xs text-[var(--color-text-muted)]">
                 By signing in, you agree to the{' '}

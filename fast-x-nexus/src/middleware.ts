@@ -20,7 +20,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 // ─── Route Classification ─────────────────────────────────────────────────────
 /** Routes that unauthenticated users CAN access */
-const PUBLIC_ROUTES = ['/login', '/terms', '/privacy', '/', '/onboarding/rider', '/rider/onboarding'];
+const PUBLIC_ROUTES = ['/login', '/terms', '/privacy', '/', '/onboarding/rider', '/rider/onboarding', '/admin/login'];
 
 /** Routes that require an authenticated session */
 const PROTECTED_PREFIXES = ['/booking', '/jobs', '/admin', '/customer', '/rider', '/profile'];
@@ -30,6 +30,7 @@ function isPublicRoute(pathname: string): boolean {
 }
 
 function isProtectedRoute(pathname: string): boolean {
+  if (pathname === '/admin/login' || pathname.startsWith('/login/')) return false;
   return PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
@@ -124,7 +125,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const needsOnboarding = user && !whatsappContact;
+  const needsOnboarding = user && !whatsappContact && userRole !== 'admin' && userRole !== 'operator';
   const isGenericOnboarding = pathname === '/onboarding';
 
   // ── Case 2a: Intercept Missing WhatsApp Contact (Onboarding Lock) ───────────

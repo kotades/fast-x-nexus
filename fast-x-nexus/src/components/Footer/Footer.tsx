@@ -97,6 +97,7 @@ export function Footer() {
                   { label: 'Lagos Logistics FAQ', href: '/#faq' },
                   { label: 'Contact Operations', href: '/contact' },
                   { label: 'Terms of Service', href: '/terms' },
+                  { label: 'Admin Access (Operations)', href: '/login/admin' },
                 ].map((item) => (
                   <li key={item.label}>
                     <a
@@ -191,11 +192,21 @@ export function Footer() {
               <Logo showSubtitle={false} className="opacity-70" iconSize={28} />
               <span className="text-[11px] text-[var(--color-text-muted)] font-sans">© 2026 Fast X Nexus Limited. All rights reserved.</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <span className="text-[10px] text-[var(--color-text-muted)] font-mono uppercase tracking-wider">
-                Lagos Dispatch Systems Operational (24/7)
-              </span>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              <a
+                href="/login/admin"
+                className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-[var(--color-primary)] hover:underline"
+              >
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">admin_panel_settings</span>
+                <span>Admin Login</span>
+              </a>
+              <span className="text-[var(--color-border)] hidden sm:inline">•</span>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="text-[10px] text-[var(--color-text-muted)] font-mono uppercase tracking-wider">
+                  Lagos Dispatch Systems Operational (24/7)
+                </span>
+              </div>
             </div>
           </div>
         </motion.div>
