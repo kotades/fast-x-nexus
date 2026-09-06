@@ -141,6 +141,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
         if (activeJob.status === 'PAID_UNASSIGNED') {
           return {
             text: `MATCHING COURIER (FX-${activeJob.id.substring(0, 6).toUpperCase()})`,
+            shortText: 'MATCHING',
             dotColor: 'bg-amber-500',
             bgColor: 'bg-amber-500/15 border-amber-500/40 text-amber-800',
           };
@@ -148,6 +149,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
         if (activeJob.status === 'ASSIGNED') {
           return {
             text: `COURIER EN ROUTE (FX-${activeJob.id.substring(0, 6).toUpperCase()})`,
+            shortText: 'EN ROUTE',
             dotColor: 'bg-amber-500',
             bgColor: 'bg-amber-500/10 border-amber-500/30 text-amber-700',
           };
@@ -155,6 +157,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
         if (activeJob.status === 'PICKED_UP' || activeJob.status === 'IN_TRANSIT') {
           return {
             text: `IN TRANSIT TO DROPOFF (FX-${activeJob.id.substring(0, 6).toUpperCase()})`,
+            shortText: 'IN TRANSIT',
             dotColor: 'bg-blue-500',
             bgColor: 'bg-blue-500/10 border-blue-500/30 text-blue-700',
           };
@@ -170,6 +173,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
         if (activeJob.status === 'ASSIGNED') {
           return {
             text: `EN ROUTE TO PICKUP (FX-${activeJob.id.substring(0, 6).toUpperCase()})`,
+            shortText: 'PICKUP',
             dotColor: 'bg-amber-500',
             bgColor: 'bg-amber-500/10 border-amber-500/30 text-amber-700',
           };
@@ -177,6 +181,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
         if (activeJob.status === 'PICKED_UP' || activeJob.status === 'IN_TRANSIT') {
           return {
             text: `IN TRANSIT TO DROPOFF (FX-${activeJob.id.substring(0, 6).toUpperCase()})`,
+            shortText: 'IN TRANSIT',
             dotColor: 'bg-blue-500',
             bgColor: 'bg-blue-500/10 border-blue-500/30 text-blue-700',
           };
@@ -186,6 +191,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
       if (unassignedCount > 0) {
         return {
           text: `${unassignedCount} POOL JOB${unassignedCount > 1 ? 'S' : ''} READY`,
+          shortText: `${unassignedCount} READY`,
           dotColor: 'bg-amber-500',
           bgColor: 'bg-amber-500/15 border-amber-500/40 text-amber-800',
         };
@@ -193,6 +199,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
       return {
         text: 'FLEET ONLINE — STANDBY',
+        shortText: 'ONLINE',
         dotColor: 'bg-emerald-500',
         bgColor: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700',
       };
@@ -249,7 +256,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className={`border px-2 sm:px-2.5 md:px-3 py-1 flex items-center gap-1.5 sm:gap-2 select-none font-mono max-w-[105px] sm:max-w-none shrink overflow-hidden ${statusBadge.bgColor}`}
+              className={`border px-2 sm:px-2.5 md:px-3 py-1 flex items-center gap-1.5 sm:gap-2 select-none font-mono shrink-0 rounded ${statusBadge.bgColor}`}
             >
               <span className="relative flex h-2 w-2 shrink-0">
                 <motion.span
@@ -259,8 +266,9 @@ export function Header({ onMenuToggle }: HeaderProps) {
                 />
                 <span className={`relative inline-flex rounded-full h-2 w-2 ${statusBadge.dotColor}`} />
               </span>
-              <span className="text-[10px] uppercase font-black tracking-wider md:tracking-widest font-mono whitespace-nowrap truncate">
-                {statusBadge.text}
+              <span className="text-[9.5px] sm:text-[10px] uppercase font-black tracking-wider md:tracking-widest font-mono whitespace-nowrap">
+                <span className="sm:hidden">{statusBadge.shortText || statusBadge.text}</span>
+                <span className="hidden sm:inline">{statusBadge.text}</span>
               </span>
             </motion.div>
           </AnimatePresence>

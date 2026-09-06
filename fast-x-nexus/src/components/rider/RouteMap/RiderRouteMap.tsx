@@ -824,7 +824,7 @@ export function RiderRouteMap() {
               key="standby-card"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-surface-elevated/95 backdrop-blur-xl border border-border border-l-4 border-l-emerald-500 p-5 shadow-2xl space-y-3"
+              className="bg-surface-elevated/98 backdrop-blur-xl border border-border border-l-4 border-l-emerald-500 p-3.5 sm:p-5 shadow-2xl space-y-2.5 sm:space-y-3 rounded-2xl"
             >
               <div className="flex items-center justify-between border-b border-border pb-2">
                 <span className="text-xs font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">

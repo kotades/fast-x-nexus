@@ -256,13 +256,13 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-900/20 z-30 md:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-900/30 z-[95] md:hidden backdrop-blur-xs"
           />
         )}
       </AnimatePresence>
 
       <aside
-        className={`w-52 flex-shrink-0 h-screen fixed left-0 top-0 bg-surface-elevated shadow-[4px_0_24px_rgba(0,0,0,0.02)] border-r border-border/50 flex flex-col z-40 transition-transform duration-300 md:translate-x-0 ${
+        className={`w-64 sm:w-60 md:w-52 flex-shrink-0 h-screen fixed left-0 top-0 bg-surface-elevated shadow-2xl md:shadow-[4px_0_24px_rgba(0,0,0,0.02)] border-r border-border/50 flex flex-col z-[100] md:z-40 transition-transform duration-300 md:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{ contentVisibility: 'auto' }}

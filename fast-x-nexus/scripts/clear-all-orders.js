@@ -70,10 +70,10 @@ async function main() {
   // 2. Reset active status on test rider so they are ready for new jobs
   const { error: riderErr } = await supabase
     .from('profiles')
-    .update({ active_status: 'ONLINE' })
+    .update({ active_status: true })
     .eq('role', 'rider');
   if (!riderErr) {
-    console.log('✅ Riders marked ONLINE and available in pool.');
+    console.log('✅ Riders marked active and available in pool.');
   }
 
   console.log('🎯 Database is now 100% clean and ready for a fresh end-to-end test!');
