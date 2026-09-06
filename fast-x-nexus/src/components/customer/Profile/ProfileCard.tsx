@@ -15,6 +15,7 @@ interface ProfileCardProps {
   email: string;
   phone: string;
   whatsappContact: string;
+  preferredPickupAddress: string;
   onFieldChange: (field: string, value: string) => void;
 }
 
@@ -23,6 +24,7 @@ export function ProfileCard({
   email, 
   phone, 
   whatsappContact, 
+  preferredPickupAddress,
   onFieldChange 
 }: ProfileCardProps) {
   return (
@@ -44,7 +46,7 @@ export function ProfileCard({
               type="text"
               value={fullName}
               onChange={(e) => onFieldChange('fullName', e.target.value)}
-              className="w-full bg-surface border border-border px-3 py-2.5 text-sm text-text outline-none transition-all duration-[var(--duration-200)] focus:border-primary font-sans"
+              className="w-full bg-surface border border-border pl-3 pr-10 py-2.5 text-sm text-text outline-none transition-all duration-[var(--duration-200)] focus:border-primary font-sans text-ellipsis overflow-hidden"
               placeholder="Your full name"
             />
             <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-dim text-[16px]" aria-hidden="true">edit</span>
@@ -61,7 +63,7 @@ export function ProfileCard({
               type="tel"
               value={whatsappContact}
               onChange={(e) => onFieldChange('whatsappContact', e.target.value)}
-              className="w-full bg-surface border border-border px-3 py-2.5 text-sm text-text outline-none transition-all duration-[var(--duration-200)] focus:border-primary font-sans"
+              className="w-full bg-surface border border-border pl-3 pr-10 py-2.5 text-sm text-text outline-none transition-all duration-[var(--duration-200)] focus:border-primary font-sans text-ellipsis overflow-hidden"
               placeholder="+234 801 234 5678"
             />
             <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-dim text-[16px]" aria-hidden="true">edit</span>
@@ -78,7 +80,7 @@ export function ProfileCard({
               type="email"
               value={email}
               disabled
-              className="w-full bg-surface-dim border border-border px-3 py-2.5 text-sm text-text-muted outline-none font-sans cursor-not-allowed"
+              className="w-full bg-surface-dim border border-border pl-3 pr-10 py-2.5 text-sm text-text-muted outline-none font-sans cursor-not-allowed text-ellipsis overflow-hidden"
               placeholder="your@email.com"
             />
             <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-dim text-[16px] opacity-50" aria-hidden="true">lock</span>
@@ -95,10 +97,33 @@ export function ProfileCard({
               type="tel"
               value={phone || 'None'}
               disabled
-              className="w-full bg-surface-dim border border-border px-3 py-2.5 text-sm text-text-muted outline-none font-sans cursor-not-allowed"
+              className="w-full bg-surface-dim border border-border pl-3 pr-10 py-2.5 text-sm text-text-muted outline-none font-sans cursor-not-allowed text-ellipsis overflow-hidden"
               placeholder="No auth phone set"
             />
             <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-dim text-[16px] opacity-50" aria-hidden="true">lock</span>
+          </div>
+        </div>
+
+        {/* Preferred Pickup Address */}
+        <div className="md:col-span-2 pt-1 border-t border-border/50">
+          <label className="text-[10px] font-mono font-black uppercase tracking-wider text-text-dim mb-1 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[14px] text-primary" aria-hidden="true">home_pin</span>
+              Preferred Pickup Address (Default Origin)
+            </span>
+            <span className="text-[9px] text-text-muted font-sans font-normal lowercase">
+              prefilled in booking engine
+            </span>
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              value={preferredPickupAddress}
+              onChange={(e) => onFieldChange('preferredPickupAddress', e.target.value)}
+              className="w-full bg-surface border border-border pl-3 pr-10 py-2.5 text-sm text-text outline-none transition-all duration-[var(--duration-200)] focus:border-primary font-sans text-ellipsis overflow-hidden"
+              placeholder="e.g. 1004 Estate, Victoria Island, Lagos"
+            />
+            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-dim text-[16px]" aria-hidden="true">edit</span>
           </div>
         </div>
       </div>

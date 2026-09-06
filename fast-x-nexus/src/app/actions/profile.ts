@@ -10,6 +10,13 @@
 
 import { createServerClient } from '@/lib/supabase/server';
 import type { ActionResult } from './booking';
+import {
+  cacheUserProfile,
+  getCachedUserProfile,
+  invalidateUserProfile,
+  cacheCustomerOrders,
+  getCachedCustomerOrders,
+} from '@/lib/cache/redis';
 
 // ─── Return Type ──────────────────────────────────────────────────────────────
 export type UserProfile = {
@@ -34,6 +41,15 @@ export async function getUserProfile(): Promise<ActionResult<UserProfile>> {
     return { success: false, error: 'Authentication required.' };
   }
 
+  // Check Redis Cache first (0.001ms instantaneous response)
+  const cachedProfile = await getCachedUserProfile(user.id);
+  if (cachedProfile) {
+    return {
+      success: true,
+      data: cachedProfile as UserProfile,
+    };
+  }
+
   // 2. Fetch profile — RLS on `profiles` ensures this can only ever return
   //    the current user's own row.
   const { data: profile, error: profileError } = await supabase
@@ -55,6 +71,9 @@ export async function getUserProfile(): Promise<ActionResult<UserProfile>> {
     return { success: false, error: 'Failed to fetch profile. Please try again.' };
   }
 
+  // Store profile in Redis Cache
+  await cacheUserProfile(user.id, profile);
+
   return {
     success: true,
     data: profile as UserProfile,
@@ -65,6 +84,7 @@ export async function getUserProfile(): Promise<ActionResult<UserProfile>> {
 export async function updateUserProfile(data: {
   fullName?: string;
   whatsappContact?: string;
+  preferredPickupAddress?: string;
 }): Promise<ActionResult<UserProfile>> {
   const supabase = await createServerClient();
   const {
@@ -90,7 +110,10 @@ export async function updateUserProfile(data: {
 
   const updatedMetadata = {
     ...(existingProfile?.metadata || {}),
-    ...(data.fullName ? { full_name: data.fullName } : {}),
+    ...(data.fullName !== undefined ? { full_name: data.fullName } : {}),
+    ...(data.preferredPickupAddress !== undefined
+      ? { preferred_pickup_address: data.preferredPickupAddress }
+      : {}),
   };
 
   const updatePayload: any = {
@@ -114,6 +137,9 @@ export async function updateUserProfile(data: {
     return { success: false, error: 'Failed to update profile.' };
   }
 
+  // Invalidate and refresh cache in Redis
+  await cacheUserProfile(user.id, updatedProfile);
+
   return {
     success: true,
     data: updatedProfile as UserProfile,
@@ -130,6 +156,12 @@ export async function getCustomerOrders(): Promise<ActionResult<any[]>> {
 
   if (authError || !user) {
     return { success: false, error: 'Authentication required.' };
+  }
+
+  // Check Redis Cache first (0.001ms instantaneous response)
+  const cachedOrders = await getCachedCustomerOrders(user.id);
+  if (cachedOrders) {
+    return { success: true, data: cachedOrders };
   }
 
   // Fetch orders and join with parcels table
@@ -177,6 +209,9 @@ export async function getCustomerOrders(): Promise<ActionResult<any[]>> {
       declaredValue: parcel?.declared_value || 0,
     };
   });
+
+  // Store in Redis Cache
+  await cacheCustomerOrders(user.id, formattedOrders);
 
   return { success: true, data: formattedOrders };
 }

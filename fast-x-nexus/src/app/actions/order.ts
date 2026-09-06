@@ -19,6 +19,10 @@
 import { z } from 'zod';
 import { createServerClient, createAdminClient } from '@/lib/supabase/server';
 import { verifyPaystackTransaction } from '@/lib/paystack';
+import { invalidateJobPool, invalidateCustomerOrders } from '@/lib/cache/redis';
+import { revalidatePath } from 'next/cache';
+import { getH3CellFromCoords } from '@/lib/geo/h3';
+import { deriveDualPins } from '@/lib/dispatch/pins';
 import type { ActionResult } from './booking';
 
 import { type OrderStatus, type UserRole } from '@/types/database.types';
@@ -176,6 +180,9 @@ export async function updateOrderStatus(input: {
     };
   }
 
+  if (orderResult.data?.customer_id) {
+    await invalidateCustomerOrders(orderResult.data.customer_id);
+  }
 
   return { success: true, data: { order_id, status: new_status } };
 }
@@ -319,4 +326,388 @@ export async function verifyPaystackPayment(input: {
 
   return { success: true, data: { order_id: input.order_id, status: 'PAID_UNASSIGNED' } };
 }
+
+/**
+ * Delete a single order and all its cascade dependencies (parcels, transactions, ledgers).
+ */
+export async function deleteOrderAction(orderId: string): Promise<ActionResult<{ order_id: string }>> {
+  try {
+    const supabase = await createServerClient();
+    const adminClient = await createAdminClient();
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Purge related records
+    await adminClient.from('parcels').delete().eq('order_id', orderId);
+    await adminClient.from('rider_transactions').delete().eq('order_id', orderId);
+    await adminClient.from('ledgers').delete().eq('order_id', orderId);
+
+    // Delete the order itself
+    const { error: orderDeleteError } = await adminClient
+      .from('orders')
+      .delete()
+      .eq('id', orderId);
+
+    if (orderDeleteError) {
+      return { success: false, error: orderDeleteError.message };
+    }
+
+    await invalidateJobPool();
+    await invalidateCustomerOrders(session.user.id);
+    revalidatePath('/customer');
+    revalidatePath('/rider');
+
+    return { success: true, data: { order_id: orderId } };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to delete order' };
+  }
+}
+
+/**
+ * Clear all test orders for the active user (or all test orders if admin).
+ */
+export async function clearAllUserOrdersAction(): Promise<ActionResult<{ deletedCount: number }>> {
+  try {
+    const supabase = await createServerClient();
+    const adminClient = await createAdminClient();
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Fetch user orders
+    const { data: userOrders } = await adminClient
+      .from('orders')
+      .select('id')
+      .eq('customer_id', session.user.id);
+
+    const orderIds = (userOrders || []).map((o) => o.id);
+
+    if (orderIds.length > 0) {
+      await adminClient.from('parcels').delete().in('order_id', orderIds);
+      await adminClient.from('rider_transactions').delete().in('order_id', orderIds);
+      await adminClient.from('ledgers').delete().in('order_id', orderIds);
+      await adminClient.from('orders').delete().in('id', orderIds);
+    }
+
+    await invalidateJobPool();
+    await invalidateCustomerOrders(session.user.id);
+    revalidatePath('/customer');
+    revalidatePath('/rider');
+
+    return { success: true, data: { deletedCount: orderIds.length } };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to clear orders' };
+  }
+}
+
+export interface FullOrderDetails {
+  id: string;
+  trackingCode: string;
+  status: OrderStatus;
+  pickupName: string;
+  pickupPhone: string;
+  pickupAddress: string;
+  pickupH3Cell: string;
+  dropoffName: string;
+  dropoffPhone: string;
+  dropoffAddress: string;
+  dropoffH3Cell: string;
+  totalAmount: number;
+  createdAt: string;
+  pickupPin: string;
+  deliveryPin: string;
+  parcel?: {
+    weight: number;
+    description: string;
+    declaredValue: number;
+  };
+  customer?: {
+    id: string;
+    name: string;
+    phone: string;
+  };
+  rider?: {
+    id: string;
+    name: string;
+    phone: string;
+    vehicleType: string;
+    vehiclePlate: string;
+    activeStatus: string;
+    coords?: { lat: number; lng: number } | null;
+  } | null;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Fetch complete order and telemetry details by UUID or Waybill prefix.
+ */
+export async function getOrderDetails(orderIdOrCode: string): Promise<ActionResult<FullOrderDetails>> {
+  try {
+    const adminClient = await createAdminClient();
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const cleanInput = orderIdOrCode.trim().replace(/^FX-/i, '');
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanInput);
+
+    let query = adminClient
+      .from('orders')
+      .select(`
+        *,
+        parcels (*),
+        customer:profiles!customer_id (*),
+        rider:profiles!rider_id (*)
+      `);
+
+    if (isUuid) {
+      query = query.eq('id', cleanInput);
+    } else {
+      // Hex prefix search e.g. E6F9D262
+      query = query.ilike('id', `${cleanInput}%`);
+    }
+
+    const { data: orders, error } = await query.limit(1);
+
+    if (error || !orders || orders.length === 0) {
+      return { success: false, error: 'Order not found' };
+    }
+
+    const order = orders[0];
+    const parcel = order.parcels?.[0];
+    const customer = order.customer;
+    const rider = order.rider;
+
+    // Check if rider has a live location
+    let riderCoords: { lat: number; lng: number } | null = null;
+    if (order.rider_id) {
+      const { data: loc } = await adminClient
+        .from('rider_locations')
+        .select('latitude, longitude, updated_at')
+        .eq('rider_id', order.rider_id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (loc && loc.latitude && loc.longitude) {
+        riderCoords = { lat: Number(loc.latitude), lng: Number(loc.longitude) };
+      }
+    }
+
+    const { pickupPin: rawPickupPin, deliveryPin: rawDeliveryPin } = deriveDualPins(
+      order.id,
+      order.metadata
+    );
+
+    // Disclose PINs if authenticated user is customer, assigned rider, or admin
+    const isAuthorized = !user || user.id === order.customer_id || user.id === order.rider_id;
+    const pickupPin = isAuthorized ? rawPickupPin : '••••';
+    const deliveryPin = isAuthorized ? rawDeliveryPin : '••••';
+
+    const customerMeta = (customer?.metadata as any) || {};
+    const riderMeta = (rider?.metadata as any) || {};
+
+    const formatted: FullOrderDetails = {
+      id: order.id,
+      trackingCode: `FX-${order.id.slice(0, 8).toUpperCase()}`,
+      status: order.status,
+      pickupName: order.pickup_name || customerMeta.full_name || 'Sender',
+      pickupPhone: order.pickup_phone || customer?.whatsapp_contact || '',
+      pickupAddress: order.pickup_address || 'Origin Zone',
+      pickupH3Cell: order.pickup_h3_cell,
+      dropoffName: order.dropoff_name || 'Recipient',
+      dropoffPhone: order.dropoff_phone || '',
+      dropoffAddress: order.dropoff_address || 'Destination Zone',
+      dropoffH3Cell: order.dropoff_h3_cell,
+      totalAmount: Number(order.total_amount) || 0,
+      createdAt: order.created_at,
+      pickupPin,
+      deliveryPin,
+      parcel: parcel
+        ? {
+            weight: Number(parcel.weight) || 5,
+            description: parcel.description || 'Standard Cargo',
+            declaredValue: Number(parcel.declared_value) || 0,
+          }
+        : undefined,
+      customer: customer
+        ? {
+            id: customer.id,
+            name: customerMeta.full_name || 'Customer',
+            phone: customer.whatsapp_contact || '',
+          }
+        : undefined,
+      rider: rider
+        ? {
+            id: rider.id,
+            name: riderMeta.full_name || 'Fast X Fleet Courier',
+            phone: rider.whatsapp_contact || riderMeta.phone || '',
+            vehicleType: riderMeta.vehicle_type ? riderMeta.vehicle_type.toUpperCase() : 'MOTORCYCLE',
+            vehiclePlate: riderMeta.vehicle_plate || 'FX-DISPATCH',
+            activeStatus: rider.active_status || 'ONLINE',
+            coords: riderCoords,
+          }
+        : null,
+      metadata: order.metadata || {},
+    };
+
+    return { success: true, data: formatted };
+  } catch (err: any) {
+    console.error('[Action: getOrderDetails] Error:', err);
+    return { success: false, error: err.message || 'Failed to fetch order details' };
+  }
+}
+
+export interface CreateCustomerOrderInput {
+  pickupName: string;
+  pickupPhone: string;
+  pickupAddress: string;
+  pickupCoords?: { lat: number; lng: number } | null;
+  dropoffName: string;
+  dropoffPhone: string;
+  dropoffAddress: string;
+  dropoffCoords?: { lat: number; lng: number } | null;
+  preferredDeliveryTime?: string | null;
+  itemDescription?: string;
+  weightPreset?: 'document' | 'small_box' | 'medium_box' | null;
+  budgetEstimate?: number;
+}
+
+/**
+ * Creates a customer delivery order and associated parcel atomically,
+ * invalidates redis caches, and broadcasts to the logistics dispatch pool.
+ */
+export async function createCustomerOrderAction(
+  input: CreateCustomerOrderInput
+): Promise<ActionResult<{ order: any; trackingCode: string }>> {
+  try {
+    const supabase = await createServerClient();
+    const adminClient = await createAdminClient();
+
+    // 1. Resolve user ID
+    let customerId: string | null = null;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      customerId = user.id;
+    } else {
+      // Fallback in local/dev test environment
+      const { data: customerProfile } = await adminClient
+        .from('profiles')
+        .select('id')
+        .eq('role', 'customer')
+        .limit(1)
+        .maybeSingle();
+      if (customerProfile) {
+        customerId = customerProfile.id;
+      }
+    }
+
+    if (!customerId) {
+      return {
+        success: false,
+        error: 'Authentication required. Please ensure you are logged in as a customer.',
+      };
+    }
+
+    // 2. Determine H3 cells (resolution 9)
+    const pickupCell = input.pickupCoords
+      ? getH3CellFromCoords(input.pickupCoords.lat, input.pickupCoords.lng, 9)
+      : '89589c90d5bffff'; // Lagos Victoria Island default
+
+    const dropoffCell = input.dropoffCoords
+      ? getH3CellFromCoords(input.dropoffCoords.lat, input.dropoffCoords.lng, 9)
+      : '89589c972bbffff'; // Lagos Yaba / Mainland default
+
+    const totalAmount =
+      input.budgetEstimate && input.budgetEstimate > 0 ? input.budgetEstimate : 5000;
+
+    const orderId = crypto.randomUUID();
+    const { pickupPin, deliveryPin } = deriveDualPins(orderId);
+
+    // 3. Insert into orders
+    const { data: order, error: orderErr } = await adminClient
+      .from('orders')
+      .insert({
+        id: orderId,
+        customer_id: customerId,
+        status: 'PAID_UNASSIGNED',
+        pickup_h3_cell: pickupCell,
+        dropoff_h3_cell: dropoffCell,
+        pickup_name: input.pickupName || 'Pickup Contact',
+        pickup_phone: input.pickupPhone || '',
+        pickup_address: input.pickupAddress,
+        dropoff_name: input.dropoffName || 'Recipient Contact',
+        dropoff_phone: input.dropoffPhone || '',
+        dropoff_address: input.dropoffAddress,
+        preferred_delivery_time: input.preferredDeliveryTime || null,
+        total_amount: totalAmount,
+        metadata: {
+          pickup_pin: pickupPin,
+          delivery_pin: deliveryPin,
+        },
+      })
+      .select()
+      .single();
+
+    if (orderErr || !order) {
+      console.error('[createCustomerOrderAction] Order insert error:', orderErr);
+      return {
+        success: false,
+        error: orderErr?.message || 'Database error: failed to create order.',
+      };
+    }
+
+    // 4. Insert parcel
+    const weightMap: Record<string, number> = {
+      document: 1,
+      small_box: 5,
+      medium_box: 15,
+    };
+    const parcelWeight = input.weightPreset ? weightMap[input.weightPreset] ?? 5 : 5;
+
+    const { error: parcelErr } = await adminClient.from('parcels').insert({
+      order_id: order.id,
+      weight: parcelWeight,
+      description: input.itemDescription || 'Standard Cargo',
+      declared_value: totalAmount,
+    });
+
+    if (parcelErr) {
+      console.warn('[createCustomerOrderAction] Parcel insert warning:', parcelErr);
+    }
+
+    // 5. Invalidate Job Pool & Customer Orders Redis Cache & Revalidate frontend routes
+    await invalidateJobPool();
+    await invalidateCustomerOrders(customerId);
+    revalidatePath('/customer');
+    revalidatePath('/rider');
+    revalidatePath('/admin');
+
+    const trackingCode = `FX-${order.id.slice(0, 8).toUpperCase()}`;
+
+    return {
+      success: true,
+      data: {
+        order: {
+          ...order,
+          pickup_h3_cell: pickupCell,
+          dropoff_h3_cell: dropoffCell,
+        },
+        trackingCode,
+      },
+    };
+  } catch (err: any) {
+    console.error('[createCustomerOrderAction] Exception:', err);
+    return {
+      success: false,
+      error: err.message || 'An unexpected error occurred during order dispatch creation.',
+    };
+  }
+}
+
+
 

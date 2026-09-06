@@ -8,10 +8,12 @@
  * active waybill tracing logs, and live SVG-based telemetry path animation.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LandingHeader } from '@/components/Header/LandingHeader';
 import { Footer } from '@/components/Footer/Footer';
+import { getOrderDetails } from '@/app/actions/order';
 
 // Simulated telemetry database
 const TRACKING_DATABASE: Record<string, {
@@ -50,19 +52,52 @@ const TRACKING_DATABASE: Record<string, {
 };
 
 export default function TrackingPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [foundRecord, setFoundRecord] = useState<typeof TRACKING_DATABASE[string] | null>(null);
   const [searched, setSearched] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code') || params.get('search');
+      if (code) {
+        setSearchQuery(code);
+        setIsScanning(true);
+        getOrderDetails(code)
+          .then((res) => {
+            if (res.success && res.data) {
+              router.push(`/customer/orders/${res.data.id}`);
+            }
+          })
+          .catch(() => {})
+          .finally(() => setIsScanning(false));
+      }
+    }
+  }, [router]);
+
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setSearched(true);
     const query = searchQuery.trim().toUpperCase();
     if (TRACKING_DATABASE[query]) {
       setFoundRecord(TRACKING_DATABASE[query]);
-    } else {
-      setFoundRecord(null);
+      return;
     }
+
+    try {
+      setIsScanning(true);
+      const res = await getOrderDetails(query);
+      if (res.success && res.data) {
+        router.push(`/customer/orders/${res.data.id}`);
+        return;
+      }
+    } catch {} finally {
+      setIsScanning(false);
+    }
+
+    setFoundRecord(null);
   };
 
   return (
@@ -94,9 +129,17 @@ export default function TrackingPage() {
               </div>
               <button
                 type="submit"
-                className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white py-2.5 font-mono text-xs font-black uppercase tracking-widest transition-colors duration-200 cursor-pointer rounded-none"
+                disabled={isScanning}
+                className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 text-white py-2.5 font-mono text-xs font-black uppercase tracking-widest transition-colors duration-200 cursor-pointer rounded-none flex items-center justify-center gap-1.5"
               >
-                Scan Database
+                {isScanning ? (
+                  <>
+                    <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                    <span>Scanning Database...</span>
+                  </>
+                ) : (
+                  <span>Scan Database</span>
+                )}
               </button>
             </form>
           </div>

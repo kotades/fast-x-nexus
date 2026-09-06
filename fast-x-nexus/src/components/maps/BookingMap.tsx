@@ -76,8 +76,8 @@ export default function BookingMap({
         className="z-10"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
         <MapEventsHandler onSelect={onLocationSelect} />
@@ -98,8 +98,8 @@ export default function BookingMap({
           </Marker>
         )}
       </MapContainer>
-      <div className="absolute bottom-4 left-4 z-20 bg-black/80 border border-gray-800 px-3 py-1.5 text-[10px] text-gray-300 font-mono select-none">
-        Click on the map to set: <span className="font-bold uppercase text-[#22C55E]">{activeSelector}</span>
+      <div className="absolute bottom-4 left-4 z-20 bg-white/95 border border-slate-200 px-3 py-1.5 text-[10px] text-slate-700 font-mono shadow-md select-none rounded">
+        Click on the map to set: <span className="font-bold uppercase text-[#15803d]">{activeSelector}</span>
       </div>
     </div>
   );

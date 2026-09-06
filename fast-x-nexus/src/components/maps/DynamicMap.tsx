@@ -7,24 +7,35 @@ import React from 'react';
 const LeafletMap = dynamic(() => import('./Map'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full bg-[#111827] border border-gray-800 flex items-center justify-center min-h-[400px]">
+    <div className="w-full h-full bg-surface-low border border-border flex items-center justify-center min-h-[400px]">
       <div className="flex flex-col items-center gap-2">
         <span className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22C55E] opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-[#22C55E]"></span>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-600"></span>
         </span>
-        <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Loading Map Layer...</span>
+        <span className="text-[10px] uppercase font-bold tracking-widest text-text-muted">Loading Map Layer...</span>
       </div>
     </div>
   ),
 });
 
-interface DynamicMapProps {
+export interface DynamicMapProps {
   pickupCell?: string;
   dropoffCell?: string;
+  pickupCoords?: { lat: number; lng: number } | null;
+  dropoffCoords?: { lat: number; lng: number } | null;
   riderCoords?: { lat: number; lng: number } | null;
+  pickupAddress?: string;
+  dropoffAddress?: string;
   riderName?: string;
+  status?: string;
+  viewer?: 'customer' | 'rider';
   zoom?: number;
+  pickupRadius?: number;
+  dropoffRadius?: number;
+  isEstimatedVicinity?: boolean;
+  isEstimatedPickup?: boolean;
+  isEstimatedDropoff?: boolean;
   filters?: {
     showRiders: boolean;
     showHubs: boolean;

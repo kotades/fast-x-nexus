@@ -10,11 +10,11 @@ export function PartnerLogos() {
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
   const partners = [
-    { name: "ACME CORP", type: "text", className: "font-black tracking-tighter" },
-    { name: "GLOBEX", type: "text", className: "font-bold tracking-widest" },
-    { name: "Initech", type: "text", className: "font-serif italic" },
-    { name: "VEELO", type: "icon-text", icon: "change_history" },
-    { name: "UMBRELLA", type: "icon-text", icon: "umbrella" },
+    { name: "JUMIA EXPRESS", type: "icon-text", icon: "local_shipping" },
+    { name: "KONGA LOGISTICS", type: "icon-text", icon: "inventory_2" },
+    { name: "PAYSTACK COMMERCE", type: "icon-text", icon: "payments" },
+    { name: "FLUTTERWAVE FLEET", type: "icon-text", icon: "sync_alt" },
+    { name: "ALABA LOGISTICS HUB", type: "icon-text", icon: "hub" },
   ];
 
   return (

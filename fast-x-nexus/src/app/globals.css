@@ -12,7 +12,7 @@
    ========================================================================== */
 
 :root {
-  /* ── Color: Forest Green Scale (Brand Primary) ── */
+/* ── Color: Forest Green Scale (Brand Primary) ── */
   --color-forest-50:  #f0f5ed;
   --color-forest-100: #d1e4c9;
   --color-forest-200: #b3d3a5;
@@ -23,6 +23,33 @@
   --color-forest-700: #1a5910; /* Hover / active */
   --color-forest-800: #012200; /* Deepest */
   --color-forest-900: #001a00;
+
+  /* Leaflet Radar Vicinity Pulsing Animation */
+}
+
+@keyframes leaflet-pulse-wave {
+  0% {
+    stroke-opacity: 0.9;
+    stroke-width: 2px;
+    fill-opacity: 0.12;
+  }
+  50% {
+    stroke-opacity: 0.35;
+    stroke-width: 5px;
+    fill-opacity: 0.24;
+  }
+  100% {
+    stroke-opacity: 0.9;
+    stroke-width: 2px;
+    fill-opacity: 0.12;
+  }
+}
+
+.pulse-vicinity-circle {
+  animation: leaflet-pulse-wave 2.4s ease-in-out infinite;
+}
+
+:root {
 
   /* ── Color: Gold Scale (Secondary Accent) ── */
   --color-gold-50:  #fffbe6;
@@ -251,8 +278,8 @@
   --color-brand-gold:       #E4A800;
 
   /* ── Fonts ── */
-  --font-sans:              'JetBrains Mono', monospace;
-  --font-mono:              'JetBrains Mono', monospace;
+  --font-sans:              var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:              var(--font-mono), 'JetBrains Mono', ui-monospace, monospace;
 
   /* ── Tracking ── */
   --tracking-tighter:       -0.05em;
@@ -296,6 +323,11 @@
    BASE STYLES
    ========================================================================== */
 
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--color-surface);
   color: var(--color-text);
@@ -317,23 +349,38 @@ body {
               0 0 0 calc(var(--state-focus-ring-offset) + var(--state-focus-ring-width)) var(--state-focus-ring);
 }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar {
+/* ── Application-Wide Custom Scrollbar ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+*::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--color-surface);
+*::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--color-border-strong);
-  border-radius: var(--radius-full);
+*::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  border: 1.5px solid transparent;
+  background-clip: content-box;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
+*::-webkit-scrollbar-thumb:hover,
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
 }
 
 /* ── Material Symbols ── */

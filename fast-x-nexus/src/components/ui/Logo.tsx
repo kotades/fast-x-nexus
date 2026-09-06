@@ -27,12 +27,16 @@ export function Logo({
   iconSize
 }: LogoProps) {
   return (
-    <div className={`relative ${width} ${height} ${className}`}>
+    <div 
+      className={`relative inline-block ${width} ${height} ${className}`}
+      style={{ position: 'relative', display: 'inline-block' }}
+    >
       <Image
         src="/images/logo.png"
         alt="Fast X Nexus"
         fill
-        className="object-contain object-left"
+        sizes="(max-width: 768px) 150px, 200px"
+        className="object-contain object-left pointer-events-none"
         priority
       />
     </div>

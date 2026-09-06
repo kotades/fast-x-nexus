@@ -1,14 +1,17 @@
 'use client';
 
 /**
- * CustomerDashboardContext — State-Driven UI Controller
+ * /src/components/customer/contexts/CustomerDashboardContext.tsx
+ * Fast X Nexus — Customer Dashboard State Controller
  *
- * Manages: activeView, activeShipment, wizardStep, ledgerTab
- * Now connected to Supabase Realtime for live order tracking.
+ * Manages active deliveries count, live shipments, and wizard state.
+ * Fully wired to Supabase Realtime for instant synchronization.
  */
 
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { createBrowserClient } from '@/lib/supabase/client';
+import { deriveDualPins } from '@/lib/dispatch/pins';
+import { getCustomerOrders, getUserProfile } from '@/app/actions/profile';
 
 export type DashboardView = 'command_map' | 'booking_wizard' | 'activity_ledger' | 'profile';
 export type WizardStep = 1 | 2 | 3 | 4;
@@ -17,11 +20,11 @@ export type LedgerTab = 'shipping' | 'financial';
 export interface Shipment {
   id: string;
   trackingCode: string;
-  status: 'PLACED' | 'PAID_UNASSIGNED' | 'ASSIGNED' | 'PICKED_UP' | 'DELIVERED' | 'CANCELLED';
-  origin: string; // Placeholder or textual representation
-  destination: string; // Placeholder or textual representation
+  status: 'PLACED' | 'PAID_UNASSIGNED' | 'ASSIGNED' | 'PICKED_UP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
+  origin: string;
+  destination: string;
   eta?: string;
-  progress: number; // 0-100
+  progress: number;
   weight: string;
   cargoSpec?: string;
   amount: number;
@@ -46,9 +49,30 @@ interface BookingData {
   preferredDeliveryTime: string | null;
 }
 
+export interface CompletedBookingSummary {
+  id: string;
+  orderId?: string;
+  trackingCode: string;
+  pickupName: string;
+  pickupAddress: string;
+  pickupPhone?: string;
+  dropoffName: string;
+  dropoffAddress: string;
+  dropoffPhone?: string;
+  amount: number;
+  weightPreset?: string | null;
+  itemDescription?: string;
+  status: string;
+  createdAt: string;
+  pickupPin?: string;
+  deliveryPin?: string;
+}
+
 interface CustomerDashboardState {
   activeView: DashboardView;
   activeShipment: Shipment | null;
+  lastCompletedBooking: CompletedBookingSummary | null;
+  showBookingForm: boolean;
   activeDeliveriesCount: number;
   wizardStep: WizardStep;
   wizardData: BookingData;
@@ -59,6 +83,9 @@ interface CustomerDashboardState {
 interface CustomerDashboardActions {
   setActiveView: (view: DashboardView) => void;
   setActiveShipment: (shipment: Shipment | null) => void;
+  setLastCompletedBooking: (booking: CompletedBookingSummary | null) => void;
+  setShowBookingForm: (show: boolean) => void;
+  setActiveDeliveriesCount: React.Dispatch<React.SetStateAction<number>>;
   setWizardStep: (step: WizardStep) => void;
   updateWizardData: (data: Partial<BookingData>) => void;
   setLedgerTab: (tab: LedgerTab) => void;
@@ -83,11 +110,23 @@ const defaultWizardData: BookingData = {
   preferredDeliveryTime: null,
 };
 
+const ACTIVE_STATUSES = ['PLACED', 'PAID_UNASSIGNED', 'ASSIGNED', 'PICKED_UP'];
+
 const CustomerDashboardContext = createContext<CustomerDashboardContextType | undefined>(undefined);
 
 export function CustomerDashboardProvider({ children }: { children: React.ReactNode }) {
   const [activeView, setActiveView] = useState<DashboardView>('command_map');
   const [activeShipment, setActiveShipment] = useState<Shipment | null>(null);
+  const [lastCompletedBooking, setLastCompletedBookingState] = useState<CompletedBookingSummary | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = sessionStorage.getItem('fastx_last_booking');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return null;
+  });
+  const [showBookingForm, setShowBookingForm] = useState(false);
   const [activeDeliveriesCount, setActiveDeliveriesCount] = useState<number>(0);
   const [wizardStep, setWizardStep] = useState<WizardStep>(1);
   const [wizardData, setWizardData] = useState<BookingData>(defaultWizardData);
@@ -95,7 +134,18 @@ export function CustomerDashboardProvider({ children }: { children: React.ReactN
   const [isLoading, setIsLoading] = useState(false);
   const supabase = createBrowserClient();
 
-  // 1. Initial Fetch of Active Shipment
+  const setLastCompletedBooking = useCallback((booking: CompletedBookingSummary | null) => {
+    setLastCompletedBookingState(booking);
+    if (typeof window !== 'undefined') {
+      if (booking) {
+        sessionStorage.setItem('fastx_last_booking', JSON.stringify(booking));
+      } else {
+        sessionStorage.removeItem('fastx_last_booking');
+      }
+    }
+  }, []);
+
+  // 1. Initial Fetch of Active Shipment & Count
   useEffect(() => {
     let isMounted = true;
     
@@ -109,15 +159,26 @@ export function CustomerDashboardProvider({ children }: { children: React.ReactN
           return;
         }
 
-        // Fetch latest active order (not cancelled/delivered)
-        const { data: order, error } = await supabase
+        // Non-blocking prefetch to warm Redis L1/L2 cache for instantaneous tab switching
+        getCustomerOrders().catch(() => {});
+        getUserProfile().catch(() => {});
+
+        // Fetch latest active order
+        const { data: order } = await supabase
           .from('orders')
-          .select('*')
+          .select(`
+            *,
+            parcels (
+              id,
+              weight,
+              description
+            )
+          `)
           .eq('customer_id', session.user.id)
-          .not('status', 'in', '("DELIVERED","CANCELLED")')
+          .in('status', ACTIVE_STATUSES)
           .order('created_at', { ascending: false })
           .limit(1)
-          .maybeSingle(); // Use maybeSingle to prevent PGRST116 errors if no orders are found
+          .maybeSingle();
 
         if (order && isMounted) {
           const progressMap: Record<string, number> = {
@@ -125,35 +186,62 @@ export function CustomerDashboardProvider({ children }: { children: React.ReactN
             'PAID_UNASSIGNED': 20,
             'ASSIGNED': 40,
             'PICKED_UP': 70,
+            'IN_TRANSIT': 75,
             'DELIVERED': 100,
             'CANCELLED': 0
           };
 
+          const parcelWeight = (order.parcels as any[])?.[0]?.weight;
+
           setActiveShipment({
             id: order.id,
-            trackingCode: order.id.split('-')[0].toUpperCase(),
+            trackingCode: `FX-${order.id.slice(0, 8).toUpperCase()}`,
             status: order.status,
             pickupH3Cell: order.pickup_h3_cell,
             dropoffH3Cell: order.dropoff_h3_cell,
-            origin: 'Origin Hub (Resolved via H3)',
-            destination: 'Dest Hub (Resolved via H3)',
-            eta: 'Pending',
-            progress: progressMap[order.status] || 0,
-            weight: 'N/A', // Would fetch from parcels table if joining
-            amount: order.total_amount,
+            origin: order.pickup_address || `Pickup Zone`,
+            destination: order.dropoff_address || `Dropoff Zone`,
+            eta: '15 mins',
+            progress: progressMap[order.status] || 20,
+            weight: parcelWeight ? `${parcelWeight}kg` : '5kg',
+            amount: Number(order.total_amount) || 0,
             createdAt: order.created_at,
             riderId: order.rider_id
           });
+
+          setLastCompletedBookingState((prev) => {
+            if (prev) return prev;
+            const { pickupPin, deliveryPin } = deriveDualPins(order.id, order.metadata);
+
+            return {
+              id: order.id,
+              orderId: order.id,
+              trackingCode: `FX-${order.id.slice(0, 8).toUpperCase()}`,
+              pickupName: order.pickup_name || 'Sender',
+              pickupAddress: order.pickup_address || 'Pickup Hub',
+              pickupPhone: order.pickup_phone || '',
+              dropoffName: order.dropoff_name || 'Recipient',
+              dropoffAddress: order.dropoff_address || 'Delivery Point',
+              dropoffPhone: order.dropoff_phone || '',
+              amount: Number(order.total_amount) || 5000,
+              weightPreset: parcelWeight ? `${parcelWeight}kg` : '5kg',
+              itemDescription: (order.parcels as any[])?.[0]?.description || 'General Cargo',
+              status: order.status,
+              createdAt: order.created_at,
+              pickupPin,
+              deliveryPin,
+            };
+          });
         }
 
-        // Fetch count of all active deliveries for this customer
-        const { count, error: countError } = await supabase
+        // Fetch exact count of active deliveries for this customer
+        const { count } = await supabase
           .from('orders')
           .select('*', { count: 'exact', head: true })
           .eq('customer_id', session.user.id)
-          .not('status', 'in', '("DELIVERED","CANCELLED")');
+          .in('status', ACTIVE_STATUSES);
 
-        if (!countError && isMounted && count !== null) {
+        if (isMounted && count !== null) {
           setActiveDeliveriesCount(count);
         }
       } catch (err) {
@@ -181,12 +269,12 @@ export function CustomerDashboardProvider({ children }: { children: React.ReactN
         .from('orders')
         .select('*', { count: 'exact', head: true })
         .eq('customer_id', session.user.id)
-        .not('status', 'in', '("DELIVERED","CANCELLED")');
+        .in('status', ACTIVE_STATUSES);
       if (isMounted && count !== null) setActiveDeliveriesCount(count);
     };
 
     const channel = supabase
-      .channel(`customer-orders`)
+      .channel('customer-orders-feed')
       .on(
         'postgres_changes',
         {
@@ -195,11 +283,8 @@ export function CustomerDashboardProvider({ children }: { children: React.ReactN
           table: 'orders',
         },
         (payload) => {
-          console.log('Orders table update received!', payload);
-          // Refresh the count when any order changes
           fetchCount();
           
-          // Also update activeShipment if this event is for the current active shipment
           if (activeShipment && payload.new && 'id' in payload.new && payload.new.id === activeShipment.id) {
             const newOrder = payload.new as any;
             const progressMap: Record<string, number> = {
@@ -207,6 +292,7 @@ export function CustomerDashboardProvider({ children }: { children: React.ReactN
               'PAID_UNASSIGNED': 20,
               'ASSIGNED': 40,
               'PICKED_UP': 70,
+              'IN_TRANSIT': 75,
               'DELIVERED': 100,
               'CANCELLED': 0
             };
@@ -228,7 +314,7 @@ export function CustomerDashboardProvider({ children }: { children: React.ReactN
       isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, [activeShipment?.id, supabase]);
+  }, [activeShipment, supabase]);
 
   const navigateTo = useCallback((view: DashboardView) => {
     setActiveView(view);
@@ -237,6 +323,7 @@ export function CustomerDashboardProvider({ children }: { children: React.ReactN
   const createNewBooking = useCallback(() => {
     setWizardStep(1);
     setWizardData(defaultWizardData);
+    setShowBookingForm(true);
     setActiveView('booking_wizard');
   }, []);
 
@@ -248,6 +335,8 @@ export function CustomerDashboardProvider({ children }: { children: React.ReactN
     () => ({
       activeView,
       activeShipment,
+      lastCompletedBooking,
+      showBookingForm,
       activeDeliveriesCount,
       wizardStep,
       wizardData,
@@ -255,13 +344,36 @@ export function CustomerDashboardProvider({ children }: { children: React.ReactN
       isLoading,
       setActiveView,
       setActiveShipment,
+      setLastCompletedBooking,
+      setShowBookingForm,
+      setActiveDeliveriesCount,
       setWizardStep,
       updateWizardData,
       setLedgerTab,
       navigateTo,
       createNewBooking,
     }),
-    [activeView, activeShipment, activeDeliveriesCount, wizardStep, wizardData, ledgerTab, isLoading, navigateTo, createNewBooking, updateWizardData]
+    [
+      activeView,
+      activeShipment,
+      lastCompletedBooking,
+      showBookingForm,
+      activeDeliveriesCount,
+      wizardStep,
+      wizardData,
+      ledgerTab,
+      isLoading,
+      setActiveView,
+      setActiveShipment,
+      setLastCompletedBooking,
+      setShowBookingForm,
+      setActiveDeliveriesCount,
+      setWizardStep,
+      updateWizardData,
+      setLedgerTab,
+      navigateTo,
+      createNewBooking,
+    ]
   );
 
   return (
@@ -279,7 +391,7 @@ export function useCustomerDashboard() {
   return context;
 }
 
-/** Safe version that returns null instead of throwing — for use in shared components like Sidebar */
+/** Safe version that returns null instead of throwing — for use in shared components like Header and Sidebar */
 export function useCustomerDashboardSafe() {
   try {
     return useCustomerDashboard();

@@ -1,10 +1,8 @@
 'use client';
 
 /**
- * DashboardShell — View Router
- *
- * Renders the active view based on CustomerDashboardContext.
- * Handles AnimatePresence transitions between views.
+ * /src/app/customer/DashboardShell.tsx
+ * Fast X Nexus — Customer Dashboard View Router
  */
 
 import React from 'react';
@@ -28,7 +26,7 @@ export function DashboardShell({ commandMap, bookingWizard, activityLedger, prof
   const { activeView } = useCustomerDashboard();
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-64px)]">
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.div
           key={activeView}
@@ -36,13 +34,25 @@ export function DashboardShell({ commandMap, bookingWizard, activityLedger, prof
           initial="initial"
           animate="animate"
           exit="exit"
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="flex-1 overflow-y-auto"
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          className="flex-1 h-full overflow-hidden flex flex-col"
         >
           {activeView === 'command_map' && commandMap}
-          {activeView === 'booking_wizard' && bookingWizard}
-          {activeView === 'activity_ledger' && activityLedger}
-          {activeView === 'profile' && profile}
+          {activeView === 'booking_wizard' && (
+            <div className="flex-1 h-full overflow-hidden flex flex-col">
+              {bookingWizard}
+            </div>
+          )}
+          {activeView === 'activity_ledger' && (
+            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+              {activityLedger}
+            </div>
+          )}
+          {activeView === 'profile' && (
+            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+              {profile}
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
     </div>

@@ -61,8 +61,10 @@ function AuthFormInner() {
         return;
       }
 
-      // Force refresh to allow middleware to intercept and route properly
-      window.location.href = '/';
+      // Check for intended destination or default to home/hub
+      const searchParams = new URLSearchParams(window.location.search);
+      const next = searchParams.get('next') || '/';
+      window.location.href = next;
     });
   }
 
@@ -73,10 +75,15 @@ function AuthFormInner() {
     setSuccessMessage(null);
 
     startTransition(async () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const next = searchParams.get('next') || '/';
+      const redirectUrl = new URL('/auth/callback', window.location.origin);
+      redirectUrl.searchParams.set('next', next);
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: redirectUrl.toString(),
         },
       });
 
@@ -133,7 +140,9 @@ function AuthFormInner() {
         return;
       }
 
-      router.refresh();
+      const searchParams = new URLSearchParams(window.location.search);
+      const next = searchParams.get('next') || '/';
+      window.location.href = next;
     });
   }
 

@@ -27,22 +27,27 @@ interface ProfileData {
   memberSince: string;
   whatsappContact: string;
   whatsappVerified: boolean;
+  preferredPickupAddress: string;
 }
 
 function getInitials(name: string): string {
-  if (!name) return 'FX';
+  if (!name || !name.trim()) return 'FX';
   return name
-    .split(' ')
+    .trim()
+    .split(/\s+/)
     .map((n) => n[0])
     .join('')
     .toUpperCase()
     .slice(0, 2);
 }
 
+// Client-side memory cache for instantaneous profile tab switching
+let memoryProfileCache: ProfileData | null = null;
+
 export function ProfilePage() {
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [initialProfile, setInitialProfile] = useState<ProfileData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [profile, setProfile] = useState<ProfileData | null>(() => memoryProfileCache);
+  const [initialProfile, setInitialProfile] = useState<ProfileData | null>(() => memoryProfileCache);
+  const [isLoading, setIsLoading] = useState(() => memoryProfileCache === null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -52,23 +57,30 @@ export function ProfilePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        setIsLoading(true);
+        if (memoryProfileCache === null) {
+          setIsLoading(true);
+        }
         // Get user details
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
-          setErrorMessage('Failed to load user session.');
+          if (memoryProfileCache === null) {
+            setErrorMessage('Failed to load user session.');
+          }
           return;
         }
 
-        // Get database profile
+        // Get database profile (served instantly from Redis)
         const res = await getUserProfile();
         if (!res.success) {
-          setErrorMessage(res.error);
+          if (memoryProfileCache === null) {
+            setErrorMessage(res.error);
+          }
           return;
         }
 
         const dbProfile = res.data;
         const fullName = (dbProfile.metadata?.full_name as string) || '';
+        const preferredPickupAddress = (dbProfile.metadata?.preferred_pickup_address as string) || '';
         const email = user.email || '';
         const phone = user.phone || '';
         const role = dbProfile.role || 'customer';
@@ -91,12 +103,17 @@ export function ProfilePage() {
             : 'N/A',
           whatsappContact,
           whatsappVerified,
+          preferredPickupAddress,
         };
 
+        memoryProfileCache = data;
         setProfile(data);
         setInitialProfile(data);
+        setErrorMessage(null);
       } catch (err: any) {
-        setErrorMessage(err.message || 'An unexpected error occurred.');
+        if (memoryProfileCache === null) {
+          setErrorMessage(err.message || 'An unexpected error occurred.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -118,11 +135,26 @@ export function ProfilePage() {
     const res = await updateUserProfile({
       fullName: profile.fullName,
       whatsappContact: profile.whatsappContact || undefined,
+      preferredPickupAddress: profile.preferredPickupAddress,
     });
 
     if (res.success) {
+      memoryProfileCache = profile;
       setInitialProfile(profile);
       setHasChanges(false);
+
+      // Notify other parts of the application (like Sidebar) of profile update
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('fastx:profile_updated', {
+            detail: {
+              fullName: profile.fullName,
+              preferredPickupAddress: profile.preferredPickupAddress,
+              whatsappContact: profile.whatsappContact,
+            },
+          })
+        );
+      }
     } else {
       setErrorMessage(res.error);
     }
@@ -194,6 +226,7 @@ export function ProfilePage() {
           email={profile.email}
           phone={profile.phone}
           whatsappContact={profile.whatsappContact}
+          preferredPickupAddress={profile.preferredPickupAddress || ''}
           onFieldChange={handleFieldChange}
         />
       </div>

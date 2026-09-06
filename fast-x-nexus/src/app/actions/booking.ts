@@ -17,6 +17,8 @@
 
 import { z } from 'zod';
 import { createServerClient, createAdminClient } from '@/lib/supabase/server';
+import { invalidateJobPool } from '@/lib/cache/redis';
+import { revalidatePath } from 'next/cache';
 
 // ─── Input Schema ────────────────────────────────────────────────────────────
 const CreateBookingSchema = z.object({
@@ -89,8 +91,6 @@ export async function createBooking(
   }
 
   // 4. Call the atomic Postgres RPC via the Service Role (admin) client
-  //    The RPC runs as SECURITY DEFINER, bypassing RLS for the insert
-  //    while guaranteeing atomicity via the implicit transaction.
   const adminClient = await createAdminClient();
   const { data: orderId, error: rpcError } = await adminClient.rpc(
     'create_order_with_ledger',
@@ -109,6 +109,11 @@ export async function createBooking(
       error: 'Failed to create booking. Please try again.',
     };
   }
+
+  // Invalidate Redis Job Pool cache
+  await invalidateJobPool();
+  revalidatePath('/customer');
+  revalidatePath('/rider');
 
   return { success: true, data: { order_id: orderId as string } };
 }
@@ -142,6 +147,11 @@ export async function simulatePaymentSuccess(orderId: string): Promise<ActionRes
     console.error('[simulatePaymentSuccess] Transition failed:', transitionError);
     return { success: false, error: `Transition failed: ${transitionError.message}` };
   }
+
+  // Invalidate Redis Cache instantly so riders see the new pool order
+  await invalidateJobPool();
+  revalidatePath('/customer');
+  revalidatePath('/rider');
 
   // Fetch customer profile to notify them via WhatsApp
   const { data: customerProfile } = await adminClient

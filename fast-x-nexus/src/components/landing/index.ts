@@ -8,6 +8,7 @@ export { TrackingSection } from "./sections/TrackingSection";
 export { FleetSection } from "./sections/FleetSection";
 export { SolutionsSection } from "./sections/SolutionsSection";
 export { NetworkSection } from "./sections/NetworkSection";
+export { FaqSection } from "./sections/FaqSection";
 
 // UI Components
 export { GlassCard } from "./ui/GlassCard";

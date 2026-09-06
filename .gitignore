@@ -87,3 +87,12 @@ kota-skillz/
 
 # === SUPABASE ===
 supabase/.temp/
+
+# === SCRATCH & ISOLATED RESEARCH (NEVER COMMIT) ===
+fast x scratch/
+fast-x-scratch/
+scratch/
+*/scratch/
+public/audit/
+*/public/audit/
+UI_UX_AUDIT_REPORT.md

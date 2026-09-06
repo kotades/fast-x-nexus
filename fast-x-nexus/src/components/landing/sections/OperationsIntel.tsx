@@ -111,11 +111,11 @@ export function OperationsIntel() {
                 </p>
               </div>
               <a
-                href="#"
-                className="mt-4 flex items-center gap-1 text-sm font-medium text-[var(--color-primary)] hover:underline"
+                href="/tracking"
+                className="mt-4 inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold uppercase tracking-wider text-[var(--color-primary)] hover:underline min-h-[44px]"
               >
-                <span>View Logs</span>
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                <span>View Telemetry Logs</span>
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">arrow_forward</span>
               </a>
             </GlassCard>
           </motion.div>

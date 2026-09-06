@@ -7,9 +7,10 @@
  * Design pattern mirrors CustomerDashboardContext.
  */
 
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import { getActiveRiderJobs } from '@/app/actions/rider';
 
-export type RiderDashboardView = 'job_pool' | 'active_jobs' | 'earnings' | 'profile';
+export type RiderDashboardView = 'job_pool' | 'active_jobs' | 'route_map' | 'earnings' | 'profile';
 export type EarningsPeriod = 'daily' | 'weekly' | 'monthly';
 
 export interface RiderJob {
@@ -45,14 +46,48 @@ type RiderDashboardContextType = RiderDashboardState & RiderDashboardActions;
 
 const RiderDashboardContext = createContext<RiderDashboardContextType | undefined>(undefined);
 
+function getInitialRiderView(): RiderDashboardView {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = sessionStorage.getItem('fastx_rider_active_view');
+      if (saved && ['job_pool', 'active_jobs', 'route_map', 'earnings', 'profile'].includes(saved)) {
+        return saved as RiderDashboardView;
+      }
+    } catch {}
+  }
+  return 'job_pool';
+}
+
 export function RiderDashboardProvider({ children }: { children: React.ReactNode }) {
-  const [activeView, setActiveView] = useState<RiderDashboardView>('job_pool');
+  const [activeView, setActiveView] = useState<RiderDashboardView>(getInitialRiderView);
   const [activeJob, setActiveJob] = useState<RiderJob | null>(null);
   const [earningsPeriod, setEarningsPeriod] = useState<EarningsPeriod>('weekly');
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    // If rider has an active delivery in progress and no view is manually stored, auto-open Dispatch Map
+    async function checkActiveDuty() {
+      const res = await getActiveRiderJobs();
+      if (res.success && res.data && res.data.length > 0) {
+        const saved = typeof window !== 'undefined' ? sessionStorage.getItem('fastx_rider_active_view') : null;
+        if (!saved || saved === 'job_pool') {
+          setActiveView('route_map');
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('fastx_rider_active_view', 'route_map');
+          }
+        }
+      }
+    }
+    checkActiveDuty();
+  }, []);
+
   const navigateTo = useCallback((view: RiderDashboardView) => {
     setActiveView(view);
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('fastx_rider_active_view', view);
+      } catch {}
+    }
   }, []);
 
   const acceptJob = useCallback((jobId: string) => {

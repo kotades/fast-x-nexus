@@ -25,11 +25,16 @@ export default function LoginPage() {
 
       <main 
         ref={ref}
-        className="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white py-16 lg:py-24"
+        className="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden bg-[var(--color-surface)] text-[var(--color-text)] py-16 lg:py-24"
       >
-        {/* Floating abstract orbs */}
-        <div className="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/4" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-[var(--color-accent)]/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
+        {/* Industrial Subgrid Backing */}
+        <div 
+          className="absolute inset-0 opacity-15 pointer-events-none"
+          style={{
+            backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
+          }}
+        />
 
         <div className="max-w-md w-full mx-auto relative z-10 px-4">
           <motion.div

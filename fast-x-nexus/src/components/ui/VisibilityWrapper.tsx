@@ -48,13 +48,36 @@ export function VisibilityWrapper({
         return;
       }
 
+      // Fast-path: Check JWT metadata (0ms)
+      const metaRole = user.app_metadata?.role || user.user_metadata?.role;
+      if (metaRole) {
+        setCurrentRole(metaRole as UserRole);
+        setLoading(false);
+        return;
+      }
+
+      // Fast-path: Check local session cache (0ms)
+      try {
+        const cachedRole = sessionStorage.getItem(`fastx_role_${user.id}`);
+        if (cachedRole) {
+          setCurrentRole(cachedRole as UserRole);
+          setLoading(false);
+          return;
+        }
+      } catch {}
+
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      setCurrentRole((profile?.role as UserRole) ?? 'guest');
+      const resolvedRole = (profile?.role as UserRole) ?? 'customer';
+      try {
+        sessionStorage.setItem(`fastx_role_${user.id}`, resolvedRole);
+      } catch {}
+
+      setCurrentRole(resolvedRole);
       setLoading(false);
     }
 

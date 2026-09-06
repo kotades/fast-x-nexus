@@ -27,7 +27,6 @@ client_secret_*.json
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
@@ -95,6 +94,12 @@ kota-skillz/
 # === SUPABASE ===
 supabase/.temp/
 
+# === SCRATCH & AUDIT ARTIFACTS ===
+scratch/
+public/audit/
+UI_UX_AUDIT_REPORT.md
+
 # === LOCAL STITCH DESIGNS ===
 src/stitch_designs/
-.env*
+
+

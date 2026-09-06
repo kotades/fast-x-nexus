@@ -63,19 +63,25 @@ export function TrackingSection() {
 
             <form onSubmit={handleSearch} className="space-y-3 pt-2">
               <div className="relative">
+                <label htmlFor="landing-tracking-input" className="sr-only">
+                  Waybill Tracking Code
+                </label>
                 <input
+                  id="landing-tracking-input"
                   type="text"
                   placeholder="ENTER WAYBILL CODE (e.g. FX-NEXUS-77)"
+                  aria-label="Enter Waybill Code"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="w-full bg-[var(--color-surface-elevated)] border border-[var(--color-border)] px-4 py-3 text-xs text-[var(--color-text)] outline-none rounded-none focus:border-[var(--color-primary)] font-mono uppercase tracking-wider"
+                  className="w-full min-h-[44px] bg-[var(--color-surface-elevated)] border border-[var(--color-border)] px-4 py-3 text-xs text-[var(--color-text)] outline-none rounded-none focus:border-[var(--color-primary)] font-mono uppercase tracking-wider"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white py-3 font-mono text-xs font-black uppercase tracking-widest cursor-pointer transition-colors duration-200 rounded-none"
+                className="w-full min-h-[44px] bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white py-3 font-mono text-xs font-black uppercase tracking-widest cursor-pointer transition-colors duration-200 rounded-none flex items-center justify-center gap-2"
               >
-                Scan Operations Hub
+                <span>Scan Operations Hub</span>
+                <span className="material-symbols-outlined text-sm" aria-hidden="true">search</span>
               </button>
             </form>
           </div>

@@ -33,6 +33,7 @@ export interface Order {
   preferred_delivery_time?: string | null;
   total_amount: number;
   created_at: string;
+  metadata?: Record<string, any> | null;
 }
 
 export interface Parcel {

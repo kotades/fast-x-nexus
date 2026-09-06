@@ -8,7 +8,8 @@ import {
   TrackingSection,
   FleetSection,
   SolutionsSection,
-  NetworkSection
+  NetworkSection,
+  FaqSection
 } from "@/components/landing";
 import { LandingHeader } from "@/components/Header/LandingHeader";
 import { Footer } from "@/components/Footer/Footer";
@@ -26,6 +27,7 @@ export default function Home() {
         <TrackingSection />
         {/* <SolutionsSection /> */}
         <NetworkSection />
+        <FaqSection />
         <ConversionCTA />
       </main>
       <Footer />

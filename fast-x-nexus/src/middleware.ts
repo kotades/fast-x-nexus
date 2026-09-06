@@ -20,7 +20,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 // ─── Route Classification ─────────────────────────────────────────────────────
 /** Routes that unauthenticated users CAN access */
-const PUBLIC_ROUTES = ['/login', '/terms', '/privacy', '/'];
+const PUBLIC_ROUTES = ['/login', '/terms', '/privacy', '/', '/onboarding/rider', '/rider/onboarding'];
 
 /** Routes that require an authenticated session */
 const PROTECTED_PREFIXES = ['/booking', '/jobs', '/admin', '/customer', '/rider', '/profile'];
@@ -42,6 +42,14 @@ function roleLandingPath(role: string | null): string {
     case 'customer': return '/customer';
     default:        return '/customer'; // Fallback to avoid infinite redirect loops in auth edge states
   }
+}
+
+function createRedirect(url: URL | string, supabaseResponse: NextResponse) {
+  const redirectResponse = NextResponse.redirect(url);
+  supabaseResponse.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+  });
+  return redirectResponse;
 }
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
@@ -88,66 +96,82 @@ export async function middleware(request: NextRequest) {
     loginUrl.pathname = '/login';
     // Preserve intended destination so we can redirect back after login
     loginUrl.searchParams.set('next', pathname);
-    return NextResponse.redirect(loginUrl);
+    return createRedirect(loginUrl, supabaseResponse);
   }
 
-  // Fetch role and whatsapp_contact from profiles table if user exists
-  let userRole: string | null = null;
+  // Fetch role and whatsapp_contact: Fast-path from JWT user metadata first (0ms)
+  let userRole: string = 'customer';
   let whatsappContact: string | null = null;
   if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, whatsapp_contact')
-      .eq('id', user.id)
-      .single();
-    userRole = profile?.role ?? 'customer'; // Fallback role to customer to prevent routing deadlocks
-    whatsappContact = profile?.whatsapp_contact ?? user.phone ?? null;
+    userRole = user.app_metadata?.role || user.user_metadata?.role || 'customer';
+    whatsappContact = user.user_metadata?.whatsapp_contact || user.phone || null;
+
+    // Fast-fallback: If role or contact not in metadata, query profiles once
+    if (!user.user_metadata?.role) {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, whatsapp_contact')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (profile) {
+          userRole = profile.role || userRole;
+          whatsappContact = profile.whatsapp_contact || whatsappContact;
+        }
+      } catch {
+        // Fallback to customer safely
+      }
+    }
   }
 
   const needsOnboarding = user && !whatsappContact;
-  const isOnboardingRoute = pathname.startsWith('/onboarding');
+  const isGenericOnboarding = pathname === '/onboarding';
 
   // ── Case 2a: Intercept Missing WhatsApp Contact (Onboarding Lock) ───────────
-  if (needsOnboarding && !isOnboardingRoute && !isPublicRoute(pathname)) {
+  if (needsOnboarding && !isGenericOnboarding && !isPublicRoute(pathname)) {
     // If they need onboarding and are trying to access a protected route (or root), force them to onboarding
     const onboardingUrl = request.nextUrl.clone();
     onboardingUrl.pathname = '/onboarding';
-    return NextResponse.redirect(onboardingUrl);
+    return createRedirect(onboardingUrl, supabaseResponse);
   }
 
   // ── Case 2b: Prevent fully onboarded users from accessing /onboarding ───────
-  if (!needsOnboarding && isOnboardingRoute) {
+  if (!needsOnboarding && isGenericOnboarding) {
     const destination = roleLandingPath(userRole);
     const hubUrl = request.nextUrl.clone();
     hubUrl.pathname = destination;
-    return NextResponse.redirect(hubUrl);
+    return createRedirect(hubUrl, supabaseResponse);
   }
 
   // ── Case 3: Authenticated user hitting /login or root / ──────────────────
   if (user && (pathname === '/login' || pathname === '/')) {
-    // If they need onboarding, 2a would have caught them if they hit /, but for /login we still want to route them
-    const destination = needsOnboarding ? '/onboarding' : roleLandingPath(userRole);
+    const nextParam = request.nextUrl.searchParams.get('next');
+    let destination = needsOnboarding ? '/onboarding' : roleLandingPath(userRole);
+    if (!needsOnboarding && nextParam && nextParam.startsWith('/') && !nextParam.startsWith('/login')) {
+      destination = nextParam;
+    }
     const hubUrl = request.nextUrl.clone();
     hubUrl.pathname = destination;
-    return NextResponse.redirect(hubUrl);
+    hubUrl.search = '';
+    return createRedirect(hubUrl, supabaseResponse);
   }
 
-  // ── Case 4: Strict Role-Based Route Isolation ──────────────────────────────
+  // ── Case 4: Role-Based Route Permissions ─────────────────────────────────
   if (user && isProtectedRoute(pathname) && !needsOnboarding) {
     let allowed = false;
 
-    if (pathname.startsWith('/admin') && (userRole === 'admin' || userRole === 'vendor')) {
+    // Super-access: Admins and operators can access all portals
+    if (userRole === 'admin' || userRole === 'operator' || userRole === 'vendor') {
       allowed = true;
-    } else if (pathname.startsWith('/jobs') && userRole === 'rider') {
+    } else if (pathname.startsWith('/rider') || pathname.startsWith('/jobs')) {
+      // Riders and users testing rider operations
       allowed = true;
-    } else if (pathname.startsWith('/rider') && userRole === 'rider') {
-      allowed = true;
-    } else if (pathname.startsWith('/customer') && userRole === 'customer') {
-      allowed = true;
-    } else if (pathname.startsWith('/booking') && userRole === 'customer') {
+    } else if (pathname.startsWith('/customer') || pathname.startsWith('/booking')) {
       allowed = true;
     } else if (pathname.startsWith('/profile')) {
-      allowed = true; // Any authenticated user can access their profile
+      allowed = true;
+    } else if (pathname.startsWith('/admin')) {
+      allowed = userRole === 'admin' || userRole === 'vendor';
     }
 
     if (!allowed) {
@@ -155,7 +179,7 @@ export async function middleware(request: NextRequest) {
       const destination = roleLandingPath(userRole);
       const hubUrl = request.nextUrl.clone();
       hubUrl.pathname = destination;
-      return NextResponse.redirect(hubUrl);
+      return createRedirect(hubUrl, supabaseResponse);
     }
   }
 

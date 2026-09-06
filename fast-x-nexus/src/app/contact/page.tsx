@@ -23,8 +23,6 @@ function HeroSection() {
       ref={ref}
       className="relative w-full overflow-hidden bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white min-h-[50vh] flex items-center pt-[72px]"
     >
-      <div className="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/4" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[var(--color-accent)]/20 rounded-full blur-3xl translate-x-1/3 translate-y-1/3" />
 
       <div className="max-w-screen-2xl mx-auto px-6 lg:px-8 relative z-10 w-full py-16 lg:py-24">
         <motion.div

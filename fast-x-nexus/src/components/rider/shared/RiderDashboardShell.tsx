@@ -14,6 +14,7 @@ import { useRiderDashboard } from '@/components/rider/contexts/RiderDashboardCon
 interface RiderDashboardShellProps {
   jobPool: React.ReactNode;
   activeJobs: React.ReactNode;
+  routeMap: React.ReactNode;
   earnings: React.ReactNode;
   profile: React.ReactNode;
 }
@@ -24,7 +25,7 @@ const viewVariants = {
   exit: { opacity: 0, x: -20 },
 };
 
-export function RiderDashboardShell({ jobPool, activeJobs, earnings, profile }: RiderDashboardShellProps) {
+export function RiderDashboardShell({ jobPool, activeJobs, routeMap, earnings, profile }: RiderDashboardShellProps) {
   const { activeView } = useRiderDashboard();
 
   return (
@@ -41,6 +42,7 @@ export function RiderDashboardShell({ jobPool, activeJobs, earnings, profile }: 
         >
           {activeView === 'job_pool' && jobPool}
           {activeView === 'active_jobs' && activeJobs}
+          {activeView === 'route_map' && routeMap}
           {activeView === 'earnings' && earnings}
           {activeView === 'profile' && profile}
         </motion.div>

@@ -12,10 +12,10 @@ import { motion } from 'framer-motion';
 import type { WizardStep } from '@/components/customer/contexts/CustomerDashboardContext';
 
 const STEPS = [
-  { step: 1 as WizardStep, label: 'Pickup Details' },
-  { step: 2 as WizardStep, label: 'Recipient Details' },
-  { step: 3 as WizardStep, label: 'Package Details' },
-  { step: 4 as WizardStep, label: 'Checkout' },
+  { step: 1 as WizardStep, label: 'Pickup Details', shortLabel: 'Pickup' },
+  { step: 2 as WizardStep, label: 'Recipient Details', shortLabel: 'Recipient' },
+  { step: 3 as WizardStep, label: 'Package Details', shortLabel: 'Package' },
+  { step: 4 as WizardStep, label: 'Checkout', shortLabel: 'Summary' },
 ];
 
 interface StepIndicatorProps {
@@ -23,11 +23,11 @@ interface StepIndicatorProps {
   onStepClick?: (step: WizardStep) => void;
 }
 
-export function StepIndicator({ currentStep }: StepIndicatorProps) {
+export function StepIndicator({ currentStep, onStepClick }: StepIndicatorProps) {
   return (
-    <div className="bg-surface border-b border-border overflow-x-auto">
-      <div className="max-w-[1400px] mx-auto flex items-stretch">
-        {STEPS.map(({ step, label }) => {
+    <div className="bg-surface border-b border-border overflow-x-auto scrollbar-hide">
+      <div className="max-w-[1400px] mx-auto flex items-stretch justify-between sm:justify-start">
+        {STEPS.map(({ step, label, shortLabel }) => {
           const isActive = currentStep === step;
           const isCompleted = currentStep > step;
           const isFuture = currentStep < step;
@@ -35,15 +35,20 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
           return (
             <div
               key={step}
+              onClick={() => {
+                if (isCompleted && onStepClick) {
+                  onStepClick(step);
+                }
+              }}
               className={`
-                py-4 px-5 md:px-6 flex items-center gap-2 relative
-                ${isActive ? 'cursor-default' : isFuture ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'}
-                ${isCompleted ? 'opacity-70' : ''}
+                py-1.5 px-2 sm:py-2.5 sm:px-5 flex items-center gap-1 sm:gap-2 relative flex-shrink-0 select-none
+                ${isActive ? 'cursor-default' : isFuture ? 'cursor-not-allowed opacity-30' : isCompleted ? 'cursor-pointer hover:opacity-100' : 'cursor-pointer'}
+                ${isCompleted ? 'opacity-80' : ''}
               `}
             >
               <span
                 className={`
-                  text-xs font-bold tracking-tighter font-mono
+                  text-[10px] sm:text-xs font-bold tracking-tighter font-mono
                   ${isActive ? 'text-primary' : isCompleted ? 'text-success' : 'text-text-muted'}
                 `}
               >
@@ -51,11 +56,12 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
               </span>
               <span
                 className={`
-                  text-xs font-bold uppercase tracking-widest whitespace-nowrap
+                  text-[10px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap
                   ${isActive ? 'text-text' : 'text-text-muted'}
                 `}
               >
-                {label}
+                <span className="hidden sm:inline">{label}</span>
+                <span className="sm:hidden">{shortLabel}</span>
               </span>
               {/* Active underline */}
               {isActive && (

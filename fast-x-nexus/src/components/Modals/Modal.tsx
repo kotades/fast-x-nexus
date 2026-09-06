@@ -104,7 +104,7 @@ export function Modal({
             exit="hidden"
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-4 md:p-6"
-            style={{ backgroundColor: 'rgba(25, 28, 29, 0.6)', backdropFilter: 'blur(4px)' }}
+            style={{ backgroundColor: 'rgba(15, 23, 42, 0.25)', backdropFilter: 'blur(4px)' }}
             onClick={onClose}
           >
             <motion.div

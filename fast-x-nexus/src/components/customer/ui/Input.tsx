@@ -47,7 +47,17 @@ export function Input({
     onBlur?.(e);
   };
 
-  const isFloating = isFocused || hasValue;
+  const isTypeWithNativePlaceholder = [
+    'date',
+    'datetime-local',
+    'time',
+    'month',
+    'week',
+    'file',
+    'color',
+  ].includes(props.type || '');
+
+  const isFloating = isFocused || hasValue || isTypeWithNativePlaceholder || !!props.placeholder;
 
   return (
     <div className={`flex flex-col gap-1.5 ${fullWidth ? 'w-full' : ''} ${className}`}>
@@ -69,7 +79,7 @@ export function Input({
           className={`
             peer w-full h-14
             bg-surface-low border-b-2
-            text-text font-sans text-base
+            text-text font-sans text-sm
             transition-all duration-[var(--duration-200)]
             focus:outline-none focus:ring-0
             disabled:opacity-[var(--state-disabled-opacity)] disabled:cursor-not-allowed
@@ -89,9 +99,8 @@ export function Input({
             absolute left-0 pointer-events-none
             transition-all duration-[var(--duration-200)] ease-out
             ${prefix ? 'left-10' : 'left-3'}
-            ${isFloating ? 'top-1.5 text-xs' : 'top-1/2 -translate-y-1/2 text-base'}
-            ${error ? 'text-error' : isFocused ? 'text-border-focus' : 'text-text-muted'}
-            font-sans font-medium
+            ${isFloating ? 'top-1.5 text-[10px] font-mono uppercase font-bold tracking-wider' : 'top-1/2 -translate-y-1/2 text-sm font-sans'}
+            ${error ? 'text-error' : isFocused ? 'text-primary' : 'text-text-muted'}
           `}
         >
           {label}

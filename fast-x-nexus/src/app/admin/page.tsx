@@ -1,54 +1,372 @@
 'use client';
 
-import React from 'react';
+/**
+ * /src/app/admin/page.tsx
+ * Fast X Nexus — Enterprise Admin Control Tower Suite
+ *
+ * Modular 6-Tab Operations Control Center:
+ * 1. Live Spatial Radar & Auto-Dispatch
+ * 2. Waybill Pipeline & Manual Assignment Board
+ * 3. Rider Fleet Operations & KYC Approvals
+ * 4. Financial Ledger & 70/30 Escrow Pool
+ * 5. System Telemetry & Spatial Health Monitor
+ * 6. Omnichannel Comms & Dispatch Radio
+ */
+
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AdminDashboardLayout } from '@/components/layouts/AdminDashboardLayout';
+import { WaybillPipeline } from '@/components/admin/WaybillPipeline';
+import { FleetRadarMap } from '@/components/admin/FleetRadarMap';
+import { RiderOperationsTab } from '@/components/admin/AdminTabs/RiderOperationsTab';
+import { FinancialLedgerTab } from '@/components/admin/AdminTabs/FinancialLedgerTab';
+import { SystemHealthTab } from '@/components/admin/AdminTabs/SystemHealthTab';
+import { AdminChatInboxTab } from '@/components/admin/AdminTabs/AdminChatInboxTab';
+import { getWaybillPipeline } from '@/app/actions/dispatch';
+import { getAllRidersAdmin } from '@/app/actions/admin';
+
+type AdminTab = 'radar' | 'waybills' | 'riders' | 'ledger' | 'telemetry' | 'chat';
+
+function AdminPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const tabQuery = (searchParams.get('tab') as AdminTab) || 'radar';
+  const [activeTab, setActiveTab] = useState<AdminTab>(tabQuery);
+
+  const [pipelineData, setPipelineData] = useState<{
+    orders: any[];
+    riders: any[];
+  }>({ orders: [], riders: [] });
+  const [loading, setLoading] = useState(true);
+
+  // Synchronize tab if query param changes
+  useEffect(() => {
+    if (tabQuery && ['radar', 'waybills', 'riders', 'ledger', 'telemetry', 'chat'].includes(tabQuery)) {
+      setActiveTab(tabQuery);
+    }
+  }, [tabQuery]);
+
+  // Listen to custom event dispatched by Sidebar
+  useEffect(() => {
+    const handleSetTab = (e: Event) => {
+      const custom = e as CustomEvent;
+      if (custom.detail?.tab && ['radar', 'waybills', 'riders', 'ledger', 'telemetry', 'chat'].includes(custom.detail.tab)) {
+        setActiveTab(custom.detail.tab as AdminTab);
+      }
+    };
+    window.addEventListener('fastx:admin:set_tab', handleSetTab);
+    return () => {
+      window.removeEventListener('fastx:admin:set_tab', handleSetTab);
+    };
+  }, []);
+
+  const changeTab = (tab: AdminTab) => {
+    setActiveTab(tab);
+    window.history.pushState(null, '', `/admin?tab=${tab}`);
+    window.dispatchEvent(new CustomEvent('fastx:admin:set_tab', { detail: { tab } }));
+  };
+
+  const fetchPipeline = useCallback(async () => {
+    try {
+      const [pipelineRes, ridersRes] = await Promise.all([
+        getWaybillPipeline(),
+        getAllRidersAdmin(),
+      ]);
+
+      const orders = pipelineRes.success ? pipelineRes.orders : [];
+      let riders = pipelineRes.success ? pipelineRes.riders : [];
+
+      // Enrich riders with detailed KYC, active order counts, and locations if available
+      if (ridersRes.success && ridersRes.riders) {
+        riders = ridersRes.riders;
+      }
+
+      setPipelineData({ orders, riders });
+    } catch (err) {
+      console.warn('[AdminPage] Error fetching pipeline:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPipeline();
+    // Auto-refresh every 12 seconds in the background
+    const interval = setInterval(fetchPipeline, 12000);
+    return () => clearInterval(interval);
+  }, [fetchPipeline]);
+
+  const totalOrders = pipelineData.orders.length;
+  const unassignedOrders = pipelineData.orders.filter(
+    (o) => o.status === 'PAID_UNASSIGNED' || o.status === 'PLACED'
+  ).length;
+  const inTransitOrders = pipelineData.orders.filter(
+    (o) => o.status === 'ASSIGNED' || o.status === 'PICKED_UP' || o.status === 'IN_TRANSIT'
+  ).length;
+  const totalRevenue = pipelineData.orders
+    .filter((o) => o.status !== 'CANCELLED')
+    .reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+
+  const tabs: Array<{ id: AdminTab; label: string; icon: string; count?: number }> = [
+    { id: 'radar', label: 'Spatial Radar', icon: 'radar' },
+    { id: 'waybills', label: 'Waybill Board', icon: 'view_kanban', count: unassignedOrders },
+    { id: 'riders', label: 'Rider Fleet Ops', icon: 'two_wheeler', count: pipelineData.riders.length },
+    { id: 'ledger', label: 'Escrow & Ledger', icon: 'account_balance_wallet' },
+    { id: 'telemetry', label: 'System Health', icon: 'dns' },
+    { id: 'chat', label: 'Omnichannel Comms', icon: 'forum' },
+  ];
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto space-y-6 pb-16 font-sans">
+      {/* Header Title */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-4">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary mb-1">
+            OPERATIONS / CONTROL TOWER
+          </p>
+          <h1 className="text-2xl font-black text-text tracking-tight uppercase">
+            Admin Control Tower
+          </h1>
+          <p className="text-xs text-text-muted mt-1">
+            Live telemetry radar, multi-waypoint dispatch orchestration, and escrow ledger.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setLoading(true);
+              fetchPipeline();
+            }}
+            className="px-3.5 py-2 bg-surface border border-border text-xs font-bold text-text-muted hover:text-text uppercase flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+          >
+            <span className="material-symbols-outlined text-xs">refresh</span>
+            Refresh Live Data
+          </button>
+        </div>
+      </div>
+
+      {/* Top Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          {
+            label: 'Active Pipeline',
+            value: inTransitOrders.toString(),
+            change: `${totalOrders} total shipments tracked`,
+            icon: 'local_shipping',
+            color: 'border-l-blue-500',
+          },
+          {
+            label: 'Unassigned Pool',
+            value: unassignedOrders.toString(),
+            change: unassignedOrders > 0 ? 'Requires auto-dispatch' : 'Pool cleared',
+            icon: 'pending_actions',
+            color: 'border-l-amber-500',
+          },
+          {
+            label: 'Online Fleet',
+            value: pipelineData.riders.length.toString(),
+            change: `${pipelineData.riders.length} couriers registered`,
+            icon: 'two_wheeler',
+            color: 'border-l-primary',
+          },
+          {
+            label: 'System GMV / Escrow',
+            value: `₦${totalRevenue.toLocaleString('en-NG')}`,
+            change: 'Escrow balanced (70/30 split)',
+            icon: 'account_balance_wallet',
+            color: 'border-l-emerald-500',
+          },
+        ].map((metric) => (
+          <div
+            key={metric.label}
+            className={`bg-surface-elevated border border-border border-l-[3px] ${metric.color} p-4 flex flex-col justify-between`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-black uppercase tracking-wider text-text-dim">
+                {metric.label}
+              </p>
+              <span className="material-symbols-outlined text-sm text-text-muted">
+                {metric.icon}
+              </span>
+            </div>
+            <h2 className="text-2xl font-black text-text">{metric.value}</h2>
+            <p className="text-[10px] text-text-muted mt-1">{metric.change}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Tab Navigation Strip */}
+      <div className="flex items-center gap-2 border-b border-border overflow-x-auto pb-1">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => changeTab(tab.id)}
+              className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all border-b-2 whitespace-nowrap cursor-pointer ${
+                isActive
+                  ? 'border-primary text-text bg-surface-elevated shadow-sm'
+                  : 'border-transparent text-text-muted hover:text-text hover:bg-surface-low'
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-base ${
+                  isActive ? 'text-primary' : 'text-text-dim'
+                }`}
+              >
+                {tab.icon}
+              </span>
+              <span>{tab.label}</span>
+              {tab.count !== undefined && tab.count > 0 && (
+                <span
+                  className={`px-1.5 py-0.2 text-[9px] font-black ${
+                    isActive ? 'bg-primary/20 text-primary' : 'bg-surface-dim text-text-muted'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab Views */}
+      <AnimatePresence mode="wait">
+        {activeTab === 'radar' && (
+          <motion.div
+            key="radar"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="grid grid-cols-1 xl:grid-cols-3 gap-6"
+          >
+            <div className="xl:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black uppercase tracking-wider text-text flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm text-primary">view_kanban</span>
+                  Quick Waybill Pipeline (Unassigned Priority)
+                </h3>
+              </div>
+              {loading ? (
+                <div className="h-64 flex items-center justify-center border border-border bg-surface-elevated text-xs text-text-muted animate-pulse">
+                  Loading live pipeline records...
+                </div>
+              ) : (
+                <WaybillPipeline
+                  initialOrders={pipelineData.orders}
+                  riders={pipelineData.riders}
+                  onRefresh={fetchPipeline}
+                />
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xs font-black uppercase tracking-wider text-text flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm text-primary">radar</span>
+                Live Spatial Radar
+              </h3>
+              <div className="h-[580px]">
+                <FleetRadarMap
+                  initialRiders={pipelineData.riders}
+                  initialOrders={pipelineData.orders}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'waybills' && (
+          <motion.div
+            key="waybills"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4"
+          >
+            {loading ? (
+              <div className="h-64 flex items-center justify-center border border-border bg-surface-elevated text-xs text-text-muted animate-pulse">
+                Loading waybills...
+              </div>
+            ) : (
+              <WaybillPipeline
+                initialOrders={pipelineData.orders}
+                riders={pipelineData.riders}
+                onRefresh={fetchPipeline}
+              />
+            )}
+          </motion.div>
+        )}
+
+        {activeTab === 'riders' && (
+          <motion.div
+            key="riders"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <RiderOperationsTab riders={pipelineData.riders} onRefresh={fetchPipeline} />
+          </motion.div>
+        )}
+
+        {activeTab === 'ledger' && (
+          <motion.div
+            key="ledger"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <FinancialLedgerTab orders={pipelineData.orders} onRefresh={fetchPipeline} />
+          </motion.div>
+        )}
+
+        {activeTab === 'telemetry' && (
+          <motion.div
+            key="telemetry"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <SystemHealthTab />
+          </motion.div>
+        )}
+
+        {activeTab === 'chat' && (
+          <motion.div
+            key="chat"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <AdminChatInboxTab />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function AdminPage() {
   return (
     <AdminDashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <p className="text-[10px] font-mono font-black uppercase tracking-[0.25em] text-text-dim mb-2">
-            Operations / Monitor
-          </p>
-          <h1 className="text-2xl font-black text-text tracking-tight uppercase">Admin Control Tower</h1>
-          <p className="text-sm text-text-muted mt-1">
-            Real-time monitoring of all logistics pipelines and system-wide ledgers.
-          </p>
-        </div>
-
-        {/* Top Metrics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Active Shipments', value: '0', change: '+0% this hour' },
-            { label: 'Unassigned Pool', value: '0', change: 'No pending orders' },
-            { label: 'Online Riders', value: '0', change: '0 active telemetry' },
-            { label: 'System Revenue', value: '₦0.00', change: 'Escrow balanced' },
-          ].map((metric) => (
-            <div key={metric.label} className="bg-surface-elevated border border-border border-l-[3px] border-l-primary p-5">
-              <p className="text-[10px] font-mono font-black uppercase tracking-wider text-text-dim mb-2">{metric.label}</p>
-              <h2 className="text-3xl font-black font-mono text-text">{metric.value}</h2>
-              <p className="text-xs text-text-muted mt-1">{metric.change}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Split Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-surface-elevated border border-border p-6">
-            <h3 className="text-sm font-black uppercase tracking-wider text-text font-mono mb-4">Waybill Pipeline</h3>
-            <div className="h-64 flex items-center justify-center border border-dashed border-border bg-surface-low text-text-muted text-xs uppercase tracking-widest font-mono">
-              Pipeline Empty
-            </div>
+      <Suspense
+        fallback={
+          <div className="p-8 flex items-center justify-center text-xs text-text-muted animate-pulse font-mono">
+            Loading Admin Control Tower...
           </div>
-          <div className="bg-surface-elevated border border-border p-6">
-            <h3 className="text-sm font-black uppercase tracking-wider text-text font-mono mb-4">Rider Telemetry Map</h3>
-            <div className="h-64 flex items-center justify-center border border-dashed border-border bg-surface-low text-text-muted text-xs uppercase tracking-widest font-mono">
-              No active telemetry
-            </div>
-          </div>
-        </div>
-      </div>
+        }
+      >
+        <AdminPageContent />
+      </Suspense>
     </AdminDashboardLayout>
   );
 }
