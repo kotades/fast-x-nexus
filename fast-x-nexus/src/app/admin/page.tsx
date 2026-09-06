@@ -243,17 +243,33 @@ function AdminPageContent() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="grid grid-cols-1 xl:grid-cols-3 gap-6"
+            className="space-y-6"
           >
-            <div className="xl:col-span-2 space-y-4">
+            {/* 1. Full-Span Live Spatial Operations Console */}
+            <div className="w-full h-[620px]">
+              <FleetRadarMap
+                initialRiders={pipelineData.riders}
+                initialOrders={pipelineData.orders}
+              />
+            </div>
+
+            {/* 2. Priority Pipeline Row */}
+            <div className="space-y-3 border-t border-border pt-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-black uppercase tracking-wider text-text flex items-center gap-2">
                   <span className="material-symbols-outlined text-sm text-primary">view_kanban</span>
                   Quick Waybill Pipeline (Unassigned Priority)
                 </h3>
+                <button
+                  onClick={() => changeTab('waybills')}
+                  className="text-xs font-bold text-primary hover:underline uppercase flex items-center gap-1 cursor-pointer"
+                >
+                  Full Waybill Board
+                  <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                </button>
               </div>
               {loading ? (
-                <div className="h-64 flex items-center justify-center border border-border bg-surface-elevated text-xs text-text-muted animate-pulse">
+                <div className="h-48 flex items-center justify-center border border-border bg-surface-elevated text-xs text-text-muted animate-pulse">
                   Loading live pipeline records...
                 </div>
               ) : (
@@ -263,19 +279,6 @@ function AdminPageContent() {
                   onRefresh={fetchPipeline}
                 />
               )}
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-xs font-black uppercase tracking-wider text-text flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm text-primary">radar</span>
-                Live Spatial Radar
-              </h3>
-              <div className="h-[580px]">
-                <FleetRadarMap
-                  initialRiders={pipelineData.riders}
-                  initialOrders={pipelineData.orders}
-                />
-              </div>
             </div>
           </motion.div>
         )}

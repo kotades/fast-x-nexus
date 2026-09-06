@@ -312,14 +312,15 @@ export function RiderRouteMap() {
 
   return (
     <div className="relative w-full h-[calc(100vh-64px)] overflow-hidden font-mono flex flex-col">
-      {/* Map Layer: Strictly gates dropoff coordinates until Stage 1 POP is verified */}
+      {/* Map Layer: Fully interactive with manual zoom preservation and dropoff waypoint visibility */}
       <div className="absolute inset-0 z-0">
         <DynamicMap
+          jobId={currentJob?.id}
           pickupCoords={currentJob ? resolvedPickup : undefined}
-          dropoffCoords={currentJob && isPickedUp ? resolvedDropoff : undefined}
+          dropoffCoords={currentJob ? resolvedDropoff : undefined}
           riderCoords={riderCoords}
           pickupAddress={currentJob?.pickup_address}
-          dropoffAddress={isPickedUp ? currentJob?.dropoff_address : undefined}
+          dropoffAddress={currentJob?.dropoff_address}
           riderName="You (Active Courier)"
           status={currentJob?.status}
           zoom={13}
@@ -380,25 +381,102 @@ export function RiderRouteMap() {
                 </span>
               </div>
 
-              {isPickedUp ? (
-                <div className="flex items-center justify-between bg-surface-low p-2 border border-border">
-                  <span className="text-text-muted flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs text-primary">route</span>
-                    Journey Corridor:
+              <div className="flex items-center justify-between bg-surface-low p-2 border border-border">
+                <span className="text-text-muted flex items-center gap-1">
+                  <span className="material-symbols-outlined text-xs text-primary">route</span>
+                  Journey Corridor:
+                </span>
+                <span className="font-bold text-primary">
+                  {distances.journeyKm} km (~{distances.journeyEta} mins)
+                </span>
+              </div>
+
+              {/* Destination Landmark & Zoom Focus Action */}
+              <div className="bg-surface-low p-2 border border-border text-[11px] space-y-1 rounded">
+                <div className="flex items-center justify-between">
+                  <span className="text-red-700 font-bold uppercase text-[10px] flex items-center gap-1">
+                    <span className="material-symbols-outlined text-xs">flag</span>
+                    Dropoff Destination
                   </span>
-                  <span className="font-bold text-primary">
-                    {distances.journeyKm} km (~${distances.journeyEta} mins)
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('fastx:map:focus_dropoff'));
+                      }
+                    }}
+                    className="text-[9px] font-mono font-bold text-red-700 hover:text-red-800 bg-red-50 hover:bg-red-100 border border-red-200 px-1.5 py-0.5 rounded flex items-center gap-0.5 cursor-pointer transition-colors"
+                    title="Zoom map directly to Dropoff"
+                  >
+                    <span>Zoom In</span>
+                    <span className="material-symbols-outlined text-[10px]">near_me</span>
+                  </button>
                 </div>
-              ) : (
-                <div className="flex items-center justify-between bg-amber-500/10 p-2 border border-amber-500/30 text-[10px] text-amber-800 font-bold">
-                  <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs">lock</span>
-                    Dropoff Location Gated
-                  </span>
-                  <span className="uppercase text-[9px]">Unlocks on Pickup</span>
-                </div>
-              )}
+                <p className="text-slate-800 font-semibold text-[10px] truncate leading-tight">
+                  {currentJob.dropoff_address || 'Victoria Island, Lagos'}
+                </p>
+                {!isPickedUp && (
+                  <p className="text-[9px] text-amber-800 italic">
+                    Recipient direct contact unlocked upon cargo pickup verification.
+                  </p>
+                )}
+              </div>
+
+              {/* Quick Map Focus Controls Strip */}
+              <div className="flex items-center gap-1.5 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('fastx:map:focus_dropoff'));
+                    }
+                  }}
+                  className="flex-1 py-1 px-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded text-[9px] font-mono font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                  title="Focus Dropoff Destination on map"
+                >
+                  <span className="material-symbols-outlined text-[11px]">flag</span>
+                  <span>Dropoff</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('fastx:map:focus_pickup'));
+                    }
+                  }}
+                  className="flex-1 py-1 px-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded text-[9px] font-mono font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                  title="Focus Pickup Origin on map"
+                >
+                  <span className="material-symbols-outlined text-[11px]">inventory_2</span>
+                  <span>Pickup</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('fastx:map:focus_rider'));
+                    }
+                  }}
+                  className="py-1 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded text-[9px] font-mono font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                  title="Focus Courier GPS on map"
+                >
+                  <span className="material-symbols-outlined text-[11px]">my_location</span>
+                  <span>Me</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('fastx:map:fit_bounds'));
+                    }
+                  }}
+                  className="py-1 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-[9px] font-mono font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                  title="Fit whole route in view"
+                >
+                  <span className="material-symbols-outlined text-[11px]">center_focus_strong</span>
+                  <span>Fit</span>
+                </button>
+              </div>
 
               {/* Geofence Arrival Callout */}
               {(!isPickedUp ? distances.toPickupKm : distances.toDropoffKm) <= 0.05 && (
@@ -557,18 +635,34 @@ export function RiderRouteMap() {
                     <span className="hidden sm:inline">Radio</span>
                   </button>
                   {isCardCollapsed && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenGoogleMaps();
-                      }}
-                      className="px-2 py-1 bg-primary hover:bg-primary-hover text-white rounded text-[9px] font-mono font-bold uppercase tracking-wider flex items-center gap-0.5 shadow-xs transition-colors cursor-pointer"
-                      title="Open Google Maps GPS"
-                    >
-                      <span className="material-symbols-outlined text-[12px]">directions</span>
-                      <span>GPS</span>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (typeof window !== 'undefined') {
+                            window.dispatchEvent(new CustomEvent('fastx:map:focus_dropoff'));
+                          }
+                        }}
+                        className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded text-[9px] font-mono font-bold uppercase tracking-wider flex items-center gap-0.5 shadow-xs transition-colors cursor-pointer"
+                        title="Focus Dropoff on map"
+                      >
+                        <span className="material-symbols-outlined text-[12px]">flag</span>
+                        <span>Dropoff</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenGoogleMaps();
+                        }}
+                        className="px-2 py-1 bg-primary hover:bg-primary-hover text-white rounded text-[9px] font-mono font-bold uppercase tracking-wider flex items-center gap-0.5 shadow-xs transition-colors cursor-pointer"
+                        title="Open Google Maps GPS"
+                      >
+                        <span className="material-symbols-outlined text-[12px]">directions</span>
+                        <span>GPS</span>
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -586,7 +680,7 @@ export function RiderRouteMap() {
                   >
                     {/* Waypoint Details & Gated Progressive Disclosure */}
                     {!isPickedUp ? (
-                      /* STAGE 1: PICKUP ORIGIN (DROPOFF GATED) */
+                      /* STAGE 1: PICKUP ORIGIN */
                       <div className="space-y-2">
                         <div className="bg-surface-low border border-border rounded-lg p-2.5 space-y-2">
                           {/* Waypoint Header & Accuracy Badge */}
@@ -672,13 +766,38 @@ export function RiderRouteMap() {
                           </div>
                         )}
 
-                        {/* Gated Destination Strip */}
-                        <div className="bg-amber-500/5 border border-amber-500/20 p-2 text-xs flex items-center justify-between text-amber-800 rounded">
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold font-mono">
-                            <span className="material-symbols-outlined text-xs text-amber-600">lock</span>
-                            <span>Destination (Gated & Confidential)</span>
+                        {/* Destination Landmark Preview with Zoom on Map Action */}
+                        <div className="bg-surface-low border border-border rounded-lg p-2.5 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] text-red-700 uppercase font-black flex items-center gap-1 font-mono">
+                              <span className="material-symbols-outlined text-xs">flag</span>
+                              Dropoff Destination Landmark
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (typeof window !== 'undefined') {
+                                  window.dispatchEvent(new CustomEvent('fastx:map:focus_dropoff'));
+                                }
+                              }}
+                              className="text-[9px] font-mono font-bold text-red-700 hover:text-red-800 bg-red-50 hover:bg-red-100 border border-red-200 px-2 py-0.5 rounded flex items-center gap-1 cursor-pointer transition-colors"
+                              title="Zoom to Dropoff location on map"
+                            >
+                              <span>Zoom on Map</span>
+                              <span className="material-symbols-outlined text-[10px]">near_me</span>
+                            </button>
                           </div>
-                          <span className="text-[8.5px] uppercase font-mono text-amber-600 font-bold">Unlocks on Pickup</span>
+                          <p className="text-xs font-bold text-text leading-snug break-words">
+                            {currentJob.dropoff_address || 'Destination Address'}
+                          </p>
+                          <div className="flex items-center justify-between text-[10px] text-amber-800 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded">
+                            <span className="flex items-center gap-1 font-mono">
+                              <span className="material-symbols-outlined text-[12px] text-amber-600">lock</span>
+                              Recipient Direct Phone & PIN
+                            </span>
+                            <span className="text-[8.5px] uppercase font-bold text-amber-700 font-mono">Unlocks on Pickup</span>
+                          </div>
                         </div>
                       </div>
                     ) : (

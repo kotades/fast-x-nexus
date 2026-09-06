@@ -98,21 +98,234 @@ const createRiderIcon = (badgeText: string = 'FAST X COURIER') => {
 const riderCourierIcon = createRiderIcon('FAST X COURIER');
 const riderSelfIcon = createRiderIcon('YOU (COURIER)');
 
-// Auto-Fit Bounds Component
-function MapBoundsUpdater({ bounds }: { bounds: L.LatLngBoundsExpression | null }) {
+// Auto-Fit Bounds & Camera Control Component (Interaction-Aware)
+interface MapBoundsUpdaterProps {
+  bounds: [number, number][];
+  pickupLatLng: [number, number] | null;
+  dropoffLatLng: [number, number] | null;
+  riderLatLng: [number, number] | null;
+  jobId?: string;
+}
+
+function MapBoundsUpdater({
+  bounds,
+  pickupLatLng,
+  dropoffLatLng,
+  riderLatLng,
+  jobId,
+}: MapBoundsUpdaterProps) {
   const map = useMap();
+  const [isUserInteracting, setIsUserInteracting] = React.useState(false);
+  const initialFitCompletedRef = React.useRef(false);
+  const previousJobIdRef = React.useRef<string | undefined>(undefined);
+  const isProgrammaticMoveRef = React.useRef(false);
+
+  // When user interacts with map (drags or zooms), enter manual mode and stop auto-resetting
   useEffect(() => {
-    if (bounds && Array.isArray(bounds) && bounds.length > 0) {
+    const onUserDragStart = () => {
+      setIsUserInteracting(true);
+    };
+    const onUserZoomStart = () => {
+      if (!isProgrammaticMoveRef.current) {
+        setIsUserInteracting(true);
+      }
+    };
+
+    map.on('dragstart', onUserDragStart);
+    map.on('zoomstart', onUserZoomStart);
+
+    return () => {
+      map.off('dragstart', onUserDragStart);
+      map.off('zoomstart', onUserZoomStart);
+    };
+  }, [map]);
+
+  // Initial fit: runs ONCE on initial load or when the active job changes
+  useEffect(() => {
+    if (jobId !== previousJobIdRef.current) {
+      previousJobIdRef.current = jobId;
+      initialFitCompletedRef.current = false;
+      setIsUserInteracting(false);
+    }
+
+    if (!initialFitCompletedRef.current && bounds.length > 0) {
+      isProgrammaticMoveRef.current = true;
       try {
         if (bounds.length === 1) {
-          map.setView(bounds[0] as [number, number], 14);
+          map.setView(bounds[0], 14);
         } else {
           map.fitBounds(bounds, { padding: [70, 70], maxZoom: 15 });
         }
-      } catch (e) {}
+        initialFitCompletedRef.current = true;
+      } catch (e) {
+      } finally {
+        setTimeout(() => {
+          isProgrammaticMoveRef.current = false;
+        }, 600);
+      }
     }
-  }, [map, bounds]);
-  return null;
+  }, [map, bounds.length, jobId]);
+
+  // Custom event listeners for programmatic focus
+  useEffect(() => {
+    const handleFitBounds = () => {
+      if (bounds.length > 0) {
+        isProgrammaticMoveRef.current = true;
+        setIsUserInteracting(false);
+        try {
+          if (bounds.length === 1) {
+            map.setView(bounds[0], 14);
+          } else {
+            map.fitBounds(bounds, { padding: [70, 70], maxZoom: 15, animate: true });
+          }
+        } finally {
+          setTimeout(() => {
+            isProgrammaticMoveRef.current = false;
+          }, 600);
+        }
+      }
+    };
+
+    const handleFocusDropoff = (e: any) => {
+      const target = e?.detail?.coords || dropoffLatLng;
+      if (target) {
+        isProgrammaticMoveRef.current = true;
+        map.flyTo(target, 16, { duration: 0.8 });
+        setTimeout(() => {
+          isProgrammaticMoveRef.current = false;
+        }, 900);
+      }
+    };
+
+    const handleFocusPickup = (e: any) => {
+      const target = e?.detail?.coords || pickupLatLng;
+      if (target) {
+        isProgrammaticMoveRef.current = true;
+        map.flyTo(target, 16, { duration: 0.8 });
+        setTimeout(() => {
+          isProgrammaticMoveRef.current = false;
+        }, 900);
+      }
+    };
+
+    const handleFocusRider = (e: any) => {
+      const target = e?.detail?.coords || riderLatLng;
+      if (target) {
+        isProgrammaticMoveRef.current = true;
+        map.flyTo(target, 16, { duration: 0.8 });
+        setTimeout(() => {
+          isProgrammaticMoveRef.current = false;
+        }, 900);
+      }
+    };
+
+    window.addEventListener('fastx:map:fit_bounds', handleFitBounds);
+    window.addEventListener('fastx:map:focus_dropoff', handleFocusDropoff);
+    window.addEventListener('fastx:map:focus_pickup', handleFocusPickup);
+    window.addEventListener('fastx:map:focus_rider', handleFocusRider);
+
+    return () => {
+      window.removeEventListener('fastx:map:fit_bounds', handleFitBounds);
+      window.removeEventListener('fastx:map:focus_dropoff', handleFocusDropoff);
+      window.removeEventListener('fastx:map:focus_pickup', handleFocusPickup);
+      window.removeEventListener('fastx:map:focus_rider', handleFocusRider);
+    };
+  }, [map, bounds, dropoffLatLng, pickupLatLng, riderLatLng]);
+
+  // Floating Quick Control Pills when user has panned or zoomed
+  if (bounds.length === 0) return null;
+
+  return (
+    <div
+      className="leaflet-top leaflet-right"
+      style={{ pointerEvents: 'auto', marginTop: '12px', marginRight: '12px', zIndex: 999 }}
+    >
+      <div className="flex flex-col items-end gap-1.5">
+        {isUserInteracting && (
+          <button
+            type="button"
+            onClick={() => {
+              isProgrammaticMoveRef.current = true;
+              setIsUserInteracting(false);
+              try {
+                if (bounds.length === 1) {
+                  map.setView(bounds[0], 14);
+                } else {
+                  map.fitBounds(bounds, { padding: [70, 70], maxZoom: 15, animate: true });
+                }
+              } finally {
+                setTimeout(() => {
+                  isProgrammaticMoveRef.current = false;
+                }, 600);
+              }
+            }}
+            className="bg-white/95 hover:bg-white text-slate-800 border border-slate-300 shadow-md px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            title="Re-fit route overview"
+          >
+            <span className="material-symbols-outlined text-xs text-emerald-600">center_focus_strong</span>
+            <span>Re-center Route</span>
+          </button>
+        )}
+
+        {/* Quick Location Pills */}
+        <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-lg p-1 shadow-sm">
+          {dropoffLatLng && (
+            <button
+              type="button"
+              onClick={() => {
+                isProgrammaticMoveRef.current = true;
+                map.flyTo(dropoffLatLng, 16, { duration: 0.8 });
+                setTimeout(() => {
+                  isProgrammaticMoveRef.current = false;
+                }, 900);
+              }}
+              className="px-2 py-0.5 bg-red-50 hover:bg-red-100 text-red-700 rounded text-[9px] font-mono font-bold uppercase flex items-center gap-0.5 cursor-pointer transition-colors"
+              title="Focus Dropoff Destination"
+            >
+              <span className="material-symbols-outlined text-[11px]">flag</span>
+              <span>Dropoff</span>
+            </button>
+          )}
+
+          {pickupLatLng && (
+            <button
+              type="button"
+              onClick={() => {
+                isProgrammaticMoveRef.current = true;
+                map.flyTo(pickupLatLng, 16, { duration: 0.8 });
+                setTimeout(() => {
+                  isProgrammaticMoveRef.current = false;
+                }, 900);
+              }}
+              className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded text-[9px] font-mono font-bold uppercase flex items-center gap-0.5 cursor-pointer transition-colors"
+              title="Focus Pickup Origin"
+            >
+              <span className="material-symbols-outlined text-[11px]">inventory_2</span>
+              <span>Pickup</span>
+            </button>
+          )}
+
+          {riderLatLng && (
+            <button
+              type="button"
+              onClick={() => {
+                isProgrammaticMoveRef.current = true;
+                map.flyTo(riderLatLng, 16, { duration: 0.8 });
+                setTimeout(() => {
+                  isProgrammaticMoveRef.current = false;
+                }, 900);
+              }}
+              className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[9px] font-mono font-bold uppercase flex items-center gap-0.5 cursor-pointer transition-colors"
+              title="Focus Courier Location"
+            >
+              <span className="material-symbols-outlined text-[11px]">my_location</span>
+              <span>Me</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // Global Zoom Event Listener for Toolbar Controls
@@ -149,6 +362,7 @@ export default function Map({
   dropoffAddress = 'Dropoff Location',
   riderName = 'Fast X Active Courier',
   status,
+  jobId,
   viewer = 'rider',
   zoom = 13,
   pickupRadius = 180,
@@ -177,9 +391,9 @@ export default function Map({
     }
   }
 
-  // Resolve Dropoff LatLng — Always unmasked for customers, gated for couriers until pickup verified
+  // Resolve Dropoff LatLng — Always unmasked when dropoff coords/cell are provided
   let dropoffLatLng: [number, number] | null = null;
-  const canShowDropoff = isCustomerViewer ? (hasActiveJob || Boolean(dropoffCell || dropoffCoords)) : (hasActiveJob && isPickedUp);
+  const canShowDropoff = Boolean(dropoffCoords || dropoffCell);
 
   if (canShowDropoff) {
     if (dropoffCoords && isNigeriaCoords([dropoffCoords.lat, dropoffCoords.lng])) {
@@ -209,7 +423,7 @@ export default function Map({
   // 1. Delivery Corridor Line (Pickup Origin -> Dropoff Destination):
   // Clean route line strictly between pickup and dropoff (never diverted to courier)
   const deliveryRouteLine: [number, number][] = [];
-  if (pickupLatLng && dropoffLatLng && (isCustomerViewer || hasActiveJob)) {
+  if (pickupLatLng && dropoffLatLng) {
     deliveryRouteLine.push(pickupLatLng);
     deliveryRouteLine.push(dropoffLatLng);
   }
@@ -249,7 +463,15 @@ export default function Map({
         <style>{mobileZoomOverrideStyles}</style>
         <MapZoomEventListener />
 
-        {allPoints.length > 0 && <MapBoundsUpdater bounds={allPoints} />}
+        {allPoints.length > 0 && (
+          <MapBoundsUpdater
+            bounds={allPoints}
+            pickupLatLng={pickupLatLng}
+            dropoffLatLng={dropoffLatLng}
+            riderLatLng={riderLatLng}
+            jobId={jobId}
+          />
+        )}
 
         {/* 1. Delivery Corridor Line (Pickup -> Dropoff): Solid Forest Green */}
         {deliveryRouteLine.length === 2 && (

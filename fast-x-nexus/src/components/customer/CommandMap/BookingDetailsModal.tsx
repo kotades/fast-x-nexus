@@ -18,6 +18,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getOrderDetails, type FullOrderDetails } from '@/app/actions/order';
+import { deriveDualPins } from '@/lib/dispatch/pins';
 import { createBrowserClient } from '@/lib/supabase/client';
 import { resolveAddressCascading, isWithinNigeria } from '@/lib/geo/cascadingGeocoder';
 
@@ -412,50 +413,58 @@ export function BookingDetailsModal({
                     </div>
                   </div>
 
-                  {/* 3. Handover PINs */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Stage 1: Pickup POP PIN */}
-                    <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[9px] uppercase font-black text-amber-800">
-                          Pickup PIN (POP)
-                        </span>
-                        <button
-                          onClick={() => copyToClipboard(order.pickupPin, 'pop')}
-                          className="text-[9px] text-amber-800 hover:text-amber-950 font-bold uppercase cursor-pointer"
-                        >
-                          {copiedField === 'pop' ? 'Copied' : 'Copy'}
-                        </button>
-                      </div>
-                      <div className="text-xl font-black text-amber-900 tracking-widest">
-                        {order.pickupPin}
-                      </div>
-                      <p className="text-[8.5px] text-amber-900/80 leading-tight">
-                        Share with courier at pickup
-                      </p>
-                    </div>
+                  {/* 3. Handover PINs (Unmasked for physical chain-of-custody handoff) */}
+                  {(() => {
+                    const derived = deriveDualPins(order.id, order.metadata);
+                    const effectivePickupPin = (order.pickupPin && order.pickupPin !== '••••') ? order.pickupPin : derived.pickupPin;
+                    const effectiveDeliveryPin = (order.deliveryPin && order.deliveryPin !== '••••') ? order.deliveryPin : derived.deliveryPin;
 
-                    {/* Stage 2: Delivery POD PIN */}
-                    <div className="bg-emerald-500/10 border border-emerald-500/30 p-2.5 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[9px] uppercase font-black text-emerald-800">
-                          Delivery PIN (POD)
-                        </span>
-                        <button
-                          onClick={() => copyToClipboard(order.deliveryPin, 'pod')}
-                          className="text-[9px] text-emerald-800 hover:text-emerald-950 font-bold uppercase cursor-pointer"
-                        >
-                          {copiedField === 'pod' ? 'Copied' : 'Copy'}
-                        </button>
+                    return (
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* Stage 1: Pickup POP PIN */}
+                        <div className="bg-amber-500/10 border border-amber-500/30 p-2.5 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] uppercase font-black text-amber-800">
+                              Pickup PIN (POP)
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(effectivePickupPin, 'pop')}
+                              className="text-[9px] text-amber-800 hover:text-amber-950 font-bold uppercase cursor-pointer"
+                            >
+                              {copiedField === 'pop' ? 'Copied' : 'Copy'}
+                            </button>
+                          </div>
+                          <div className="text-2xl font-black font-mono text-amber-900 tracking-widest">
+                            {effectivePickupPin}
+                          </div>
+                          <p className="text-[8.5px] text-amber-900/80 leading-tight">
+                            Share with courier at pickup
+                          </p>
+                        </div>
+
+                        {/* Stage 2: Delivery POD PIN */}
+                        <div className="bg-emerald-500/10 border border-emerald-500/30 p-2.5 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] uppercase font-black text-emerald-800">
+                              Delivery PIN (POD)
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(effectiveDeliveryPin, 'pod')}
+                              className="text-[9px] text-emerald-800 hover:text-emerald-950 font-bold uppercase cursor-pointer"
+                            >
+                              {copiedField === 'pod' ? 'Copied' : 'Copy'}
+                            </button>
+                          </div>
+                          <div className="text-2xl font-black font-mono text-emerald-900 tracking-widest">
+                            {effectiveDeliveryPin}
+                          </div>
+                          <p className="text-[8.5px] text-emerald-900/80 leading-tight">
+                            Share upon parcel delivery
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-xl font-black text-emerald-900 tracking-widest">
-                        {order.deliveryPin}
-                      </div>
-                      <p className="text-[8.5px] text-emerald-900/80 leading-tight">
-                        Share upon parcel delivery
-                      </p>
-                    </div>
-                  </div>
+                    );
+                  })()}
 
                   {/* 4. Package Specs & Fare */}
                   <div className="bg-surface-low border border-border p-2.5 text-xs grid grid-cols-3 gap-2">

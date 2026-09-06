@@ -29,6 +29,7 @@ export interface DynamicMapProps {
   dropoffAddress?: string;
   riderName?: string;
   status?: string;
+  jobId?: string;
   viewer?: 'customer' | 'rider';
   zoom?: number;
   pickupRadius?: number;

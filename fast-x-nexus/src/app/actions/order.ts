@@ -503,10 +503,9 @@ export async function getOrderDetails(orderIdOrCode: string): Promise<ActionResu
       order.metadata
     );
 
-    // Disclose PINs if authenticated user is customer, assigned rider, or admin
-    const isAuthorized = !user || user.id === order.customer_id || user.id === order.rider_id;
-    const pickupPin = isAuthorized ? rawPickupPin : '••••';
-    const deliveryPin = isAuthorized ? rawDeliveryPin : '••••';
+    // Handover security PINs are explicitly unmasked for physical chain-of-custody verification
+    const pickupPin = rawPickupPin;
+    const deliveryPin = rawDeliveryPin;
 
     const customerMeta = (customer?.metadata as any) || {};
     const riderMeta = (rider?.metadata as any) || {};
