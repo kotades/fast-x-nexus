@@ -420,13 +420,43 @@ export function WaybillPipeline({ initialOrders, riders, onRefresh }: WaybillPip
                       </div>
                     </td>
                     <td className="p-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 border text-[10px] font-black uppercase tracking-wider ${getStatusBadge(
-                          order.status
-                        )}`}
-                      >
-                        {order.status}
-                      </span>
+                      <div className="flex flex-col gap-1 items-start">
+                        <span
+                          className={`inline-block px-2 py-0.5 border text-[10px] font-black uppercase tracking-wider ${getStatusBadge(
+                            order.status
+                          )}`}
+                        >
+                          {order.status}
+                        </span>
+
+                        {(order.status === 'PAID_UNASSIGNED' || order.status === 'PLACED') && (() => {
+                          const elapsedMs = Math.max(0, Date.now() - new Date(order.created_at).getTime());
+                          const elapsedMinutes = Math.floor(elapsedMs / (60 * 1000));
+                          const remainingMinutes = Math.max(0, 15 - elapsedMinutes);
+                          const isBreached = elapsedMinutes >= 15;
+                          const isWarning = elapsedMinutes >= 10 && elapsedMinutes < 15;
+
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[8.5px] font-mono font-bold uppercase rounded border ${
+                                isBreached
+                                  ? 'bg-red-50 text-red-700 border-red-200 animate-pulse'
+                                  : isWarning
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              }`}
+                              title="15-Minute Instant Dispatch Promise Guarantee"
+                            >
+                              <span className="material-symbols-outlined text-[10px]">
+                                {isBreached ? 'alarm_on' : isWarning ? 'hourglass_bottom' : 'timer'}
+                              </span>
+                              {isBreached
+                                ? `BREACH (+${elapsedMinutes - 15}m)`
+                                : `SLA: ${remainingMinutes}m left`}
+                            </span>
+                          );
+                        })()}
+                      </div>
                     </td>
                     <td className="p-3 max-w-[180px] truncate" title={order.pickup_address}>
                       <span className="text-text font-medium">{order.pickup_name || 'Sender'}</span>
