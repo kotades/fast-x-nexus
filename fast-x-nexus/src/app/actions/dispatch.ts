@@ -10,8 +10,83 @@ import { createServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { sendWhatsAppMessage, buildRiderDispatchMessage } from '@/lib/whatsapp';
 
+import type { OrchestrationOptions, DispatchPreviewResult } from '@/lib/dispatch/types';
+
+function safeRevalidate(path: string) {
+  try {
+    revalidatePath(path);
+  } catch {
+    // Ignored when invoked in standalone script/testing context
+  }
+}
+
 /**
- * Trigger an auto-dispatch batch across all pending unassigned orders.
+ * Generates an auto-dispatch preview with H3 distance metrics and candidate matches
+ * without mutating database records.
+ */
+export async function previewAutoDispatchAction(options?: OrchestrationOptions): Promise<{
+  success: boolean;
+  data?: DispatchPreviewResult;
+  error?: string;
+}> {
+  try {
+    const orchestrator = new DispatchOrchestrator();
+    const data = await orchestrator.previewAutoDispatch({
+      maxRadiusH3Krings: options?.maxRadiusH3Krings ?? 6,
+      allowMultiOrder: options?.allowMultiOrder ?? true,
+      maxOrdersPerRider: options?.maxOrdersPerRider ?? 3,
+      ...options,
+    });
+    return { success: true, data };
+  } catch (error: any) {
+    console.error('[Action: previewAutoDispatchAction] Error:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to generate dispatch preview',
+    };
+  }
+}
+
+/**
+ * Atomically commits a confirmed batch of courier assignments.
+ */
+export async function executeBatchAutoDispatchAction(
+  matches: Array<{ orderId: string; riderId: string }>
+): Promise<{
+  success: boolean;
+  allocatedCount: number;
+  errors?: string[];
+  error?: string;
+}> {
+  try {
+    if (!matches || matches.length === 0) {
+      return { success: false, allocatedCount: 0, error: 'No order-courier matches provided' };
+    }
+
+    const orchestrator = new DispatchOrchestrator();
+    const result = await orchestrator.executeBatchDispatch(matches);
+
+    safeRevalidate('/admin');
+    safeRevalidate('/rider');
+    safeRevalidate('/customer');
+
+    return {
+      success: result.success,
+      allocatedCount: result.allocatedCount,
+      errors: result.errors,
+    };
+  } catch (error: any) {
+    console.error('[Action: executeBatchAutoDispatchAction] Error:', error);
+    return {
+      success: false,
+      allocatedCount: 0,
+      error: error.message || 'Batch dispatch execution failed',
+    };
+  }
+}
+
+/**
+ * Trigger an auto-dispatch batch across all pending unassigned orders (instant batch).
  */
 export async function triggerAutoDispatch() {
   try {
@@ -22,9 +97,9 @@ export async function triggerAutoDispatch() {
       maxOrdersPerRider: 3,
     });
 
-    revalidatePath('/admin');
-    revalidatePath('/rider');
-    revalidatePath('/customer');
+    safeRevalidate('/admin');
+    safeRevalidate('/rider');
+    safeRevalidate('/customer');
 
     return {
       success: true,
@@ -94,8 +169,8 @@ export async function manualAssignRider(orderId: string, riderId: string) {
       }).catch((e) => console.warn('[manualAssignRider] Notification warning:', e));
     }
 
-    revalidatePath('/admin');
-    revalidatePath('/rider');
+    safeRevalidate('/admin');
+    safeRevalidate('/rider');
     return { success: true };
   } catch (error: any) {
     console.error('[Action: manualAssignRider] Error:', error);
@@ -124,8 +199,8 @@ export async function reassignOrder(orderId: string, newRiderId: string | null) 
 
     if (error) throw error;
 
-    revalidatePath('/admin');
-    revalidatePath('/rider');
+    safeRevalidate('/admin');
+    safeRevalidate('/rider');
     return { success: true };
   } catch (error: any) {
     console.error('[Action: reassignOrder] Error:', error);

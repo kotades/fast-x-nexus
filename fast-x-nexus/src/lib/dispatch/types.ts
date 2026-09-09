@@ -98,3 +98,50 @@ export interface OrchestrationOptions {
   maxOrdersPerRider?: number; // Default 3 in multi-order mode
   vehicleTypeFilter?: ('bicycle' | 'motorcycle' | 'van' | 'truck')[];
 }
+
+export interface DispatchPreviewMatch {
+  orderId: string;
+  trackingNumber: string;
+  pickupAddress: string;
+  dropoffAddress: string;
+  pickupName?: string;
+  dropoffName?: string;
+  cargoDescription?: string;
+  cargoWeightKg: number;
+  totalAmountNgn: number;
+  payoutNgn: number;
+  createdAt: string;
+  riderId: string;
+  riderName: string;
+  riderPhone: string;
+  vehicleType: string;
+  avatarUrl?: string;
+  rating?: number;
+  distanceKm: number;
+  distanceMeters: number;
+  h3Distance: number;
+  estimatedPickupMinutes: number;
+}
+
+export interface DispatchPreviewUnassigned {
+  orderId: string;
+  trackingNumber: string;
+  pickupAddress: string;
+  dropoffAddress: string;
+  reason: string;
+  cargoWeightKg: number;
+  totalAmountNgn: number;
+  createdAt: string;
+}
+
+export interface DispatchPreviewResult {
+  runId: string;
+  timestamp: string;
+  totalOrders: number;
+  matchedCount: number;
+  unassignedCount: number;
+  totalPayoutNgn: number;
+  avgDistanceKm: number;
+  matches: DispatchPreviewMatch[];
+  unassigned: DispatchPreviewUnassigned[];
+}

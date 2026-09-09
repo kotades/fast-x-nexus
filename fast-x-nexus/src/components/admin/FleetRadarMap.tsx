@@ -12,6 +12,7 @@ import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { createBrowserClient } from '@/lib/supabase/client';
 import { cellToLatLng, isValidCell } from 'h3-js';
+import { AutoDispatchModal } from './AutoDispatchModal';
 import 'leaflet/dist/leaflet.css';
 
 export interface RiderRadarData {
@@ -289,6 +290,7 @@ export function FleetRadarMap({ initialRiders = [], initialOrders = [] }: FleetR
   } | null>(null);
   const [activeTab, setActiveTab] = useState<'RIDERS' | 'CARGO'>('RIDERS');
   const [searchQuery, setSearchQuery] = useState('');
+  const [autoDispatchOpen, setAutoDispatchOpen] = useState(false);
 
   useEffect(() => {
     // 1. Process Riders (Use real coordinates if present)
@@ -445,21 +447,32 @@ export function FleetRadarMap({ initialRiders = [], initialOrders = [] }: FleetR
           ))}
         </div>
 
-        {/* View Mode Filters */}
-        <div className="flex items-center gap-1 border border-border p-0.5 rounded bg-surface-low">
-          {(['ALL', 'RIDERS', 'CARGO'] as const).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider transition-colors cursor-pointer rounded ${
-                viewMode === mode
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-text-muted hover:text-text'
-              }`}
-            >
-              {mode}
-            </button>
-          ))}
+        {/* View Mode Filters & Auto-Dispatch Button */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 border border-border p-0.5 rounded bg-surface-low">
+            {(['ALL', 'RIDERS', 'CARGO'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider transition-colors cursor-pointer rounded ${
+                  viewMode === mode
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-text-muted hover:text-text'
+                }`}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setAutoDispatchOpen(true)}
+            className="px-3 py-1 text-[9.5px] font-mono font-black uppercase tracking-wider bg-primary hover:bg-primary/90 text-white rounded flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            title="Open 1-Click Batch Auto-Dispatch Engine"
+          >
+            <span className="material-symbols-outlined text-xs">bolt</span>
+            <span>AUTO-DISPATCH ({radarOrders.length})</span>
+          </button>
         </div>
       </div>
 
@@ -603,6 +616,12 @@ export function FleetRadarMap({ initialRiders = [], initialOrders = [] }: FleetR
           </div>
         </div>
       </div>
+
+      {/* 1-Click Batch Auto-Dispatch Preview & Execution Engine */}
+      <AutoDispatchModal
+        isOpen={autoDispatchOpen}
+        onClose={() => setAutoDispatchOpen(false)}
+      />
     </div>
   );
 }

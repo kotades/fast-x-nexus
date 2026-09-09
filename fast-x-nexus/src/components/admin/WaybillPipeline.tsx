@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { triggerAutoDispatch, manualAssignRider, reassignOrder } from '@/app/actions/dispatch';
 import { cancelOrderAdmin, unassignRiderAdmin } from '@/app/actions/admin';
 import { FeedbackModal, type FeedbackType } from '@/components/ui/FeedbackModal';
+import { AutoDispatchModal } from './AutoDispatchModal';
 
 export interface WaybillOrder {
   id: string;
@@ -79,6 +80,7 @@ export function WaybillPipeline({ initialOrders, riders, onRefresh }: WaybillPip
 
   const [isPending, startTransition] = useTransition();
   const [dispatchStats, setDispatchStats] = useState<string | null>(null);
+  const [autoDispatchModalOpen, setAutoDispatchModalOpen] = useState(false);
 
   const [feedbackModal, setFeedbackModal] = useState<{
     isOpen: boolean;
@@ -143,23 +145,12 @@ export function WaybillPipeline({ initialOrders, riders, onRefresh }: WaybillPip
     });
   }, [orders, activeFilter, searchQuery]);
 
+  const unassignedOrdersCount = useMemo(() => {
+    return orders.filter((o) => o.status === 'PAID_UNASSIGNED' || o.status === 'PLACED').length;
+  }, [orders]);
+
   const handleRunAutoDispatch = () => {
-    startTransition(async () => {
-      setDispatchStats('Running H3 Greedy Dispatch Engine...');
-      const res = await triggerAutoDispatch();
-      if (res.success) {
-        setDispatchStats(
-          `Auto-dispatch complete: ${res.allocatedCount} orders allocated, ${res.unassignedCount} remaining unassigned.`
-        );
-        if (onRefresh) {
-          onRefresh();
-        } else {
-          setTimeout(() => window.location.reload(), 1000);
-        }
-      } else {
-        setDispatchStats(`Dispatch error: ${res.error}`);
-      }
-    });
+    setAutoDispatchModalOpen(true);
   };
 
   const handleOpenAssignModal = (order: WaybillOrder) => {
@@ -319,13 +310,13 @@ export function WaybillPipeline({ initialOrders, riders, onRefresh }: WaybillPip
           <div className="flex items-center gap-2">
             <button
               onClick={handleRunAutoDispatch}
-              disabled={isPending}
-              className="min-h-[38px] bg-primary hover:bg-primary/90 text-white font-mono font-black text-xs uppercase tracking-widest px-4 py-2 flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+              className="min-h-[38px] bg-primary hover:bg-primary/90 text-white font-mono font-black text-xs uppercase tracking-widest px-4 py-2 flex items-center gap-2 transition-all cursor-pointer shadow-sm rounded"
+              title="Open 1-Click Batch Auto-Dispatch Engine"
             >
               <span className="material-symbols-outlined text-sm" aria-hidden="true">
                 bolt
               </span>
-              <span>{isPending ? 'ORCHESTRATING...' : 'AUTO-DISPATCH POOL'}</span>
+              <span>AUTO-DISPATCH QUEUE ({unassignedOrdersCount})</span>
             </button>
           </div>
         </div>
@@ -958,6 +949,19 @@ export function WaybillPipeline({ initialOrders, riders, onRefresh }: WaybillPip
         confirmLabel={feedbackModal.confirmLabel}
         onConfirm={feedbackModal.onConfirm}
         isLoading={isPending}
+      />
+
+      {/* 1-Click Batch Auto-Dispatch Preview & Execution Engine */}
+      <AutoDispatchModal
+        isOpen={autoDispatchModalOpen}
+        onClose={() => setAutoDispatchModalOpen(false)}
+        onSuccess={() => {
+          if (onRefresh) {
+            onRefresh();
+          } else {
+            window.location.reload();
+          }
+        }}
       />
     </div>
   );
