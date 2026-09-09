@@ -10,7 +10,12 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { getAdminFinancialStats } from '@/app/actions/admin';
+import {
+  getAdminFinancialStats,
+  getCourierPayoutRoster,
+  type CourierPayoutSummary,
+} from '@/app/actions/admin';
+import { DisbursePayoutModal } from '../DisbursePayoutModal';
 
 interface LedgerOrder {
   id: string;
@@ -20,6 +25,7 @@ interface LedgerOrder {
   pickup_name?: string;
   dropoff_name?: string;
   rider_id?: string;
+  metadata?: Record<string, any>;
 }
 
 interface FinancialLedgerTabProps {
@@ -32,6 +38,11 @@ export function FinancialLedgerTab({ orders, onRefresh }: FinancialLedgerTabProp
   const [searchQuery, setSearchQuery] = useState('');
   const [statsData, setStatsData] = useState<any>(null);
   const [loadingStats, setLoadingStats] = useState(true);
+
+  // Courier Escrow Payout State
+  const [payoutRoster, setPayoutRoster] = useState<CourierPayoutSummary[]>([]);
+  const [selectedCourierForPayout, setSelectedCourierForPayout] = useState<CourierPayoutSummary | null>(null);
+  const [loadingRoster, setLoadingRoster] = useState(false);
 
   // Load authoritative server financial statistics
   const fetchStats = async () => {
@@ -48,8 +59,23 @@ export function FinancialLedgerTab({ orders, onRefresh }: FinancialLedgerTabProp
     }
   };
 
+  const fetchRoster = async () => {
+    setLoadingRoster(true);
+    try {
+      const res = await getCourierPayoutRoster();
+      if (res.success && res.couriers) {
+        setPayoutRoster(res.couriers);
+      }
+    } catch (e) {
+      console.warn('[FinancialLedgerTab] Error fetching payout roster:', e);
+    } finally {
+      setLoadingRoster(false);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
+    fetchRoster();
   }, [orders]);
 
   // Local fallback calculations
@@ -240,6 +266,7 @@ export function FinancialLedgerTab({ orders, onRefresh }: FinancialLedgerTabProp
           <button
             onClick={() => {
               fetchStats();
+              fetchRoster();
               onRefresh?.();
             }}
             className="px-3 py-1.5 bg-surface border border-border text-xs text-text-muted hover:text-text flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -247,6 +274,90 @@ export function FinancialLedgerTab({ orders, onRefresh }: FinancialLedgerTabProp
             <span className="material-symbols-outlined text-xs">refresh</span>
             Refresh
           </button>
+        </div>
+      </div>
+
+      {/* Courier Escrow Payout Disbursements Section */}
+      <div className="bg-surface-elevated border border-border p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+            <h4 className="text-xs font-bold text-text uppercase tracking-wider">
+              Paystack Direct Courier Disbursements
+            </h4>
+            <span className="text-[10px] bg-blue-50 text-blue-800 border border-blue-200 px-1.5 py-0.2 rounded font-mono font-bold">
+              70% Escrow Pool
+            </span>
+          </div>
+          <span className="text-xs text-text-muted font-mono">
+            {payoutRoster.filter((c) => c.pendingNgn > 0).length} Couriers with Payable Escrow
+          </span>
+        </div>
+
+        {/* Courier Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {payoutRoster.length === 0 ? (
+            <div className="col-span-full py-6 text-center text-text-muted text-xs bg-surface border border-border rounded">
+              <span className="material-symbols-outlined text-2xl text-text-dim block mb-1">
+                account_balance_wallet
+              </span>
+              No couriers with delivered orders awaiting disbursement.
+            </div>
+          ) : (
+            payoutRoster.map((courier) => {
+              const hasBank = !!courier.bankDetails?.account_number;
+
+              return (
+                <div
+                  key={courier.riderId}
+                  className="p-3.5 bg-surface border border-border rounded flex flex-col justify-between gap-3 shadow-sm"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-text">{courier.name}</span>
+                      <span className="text-[10px] font-mono uppercase bg-surface-low text-text-muted px-1.5 py-0.5 rounded border border-border">
+                        {courier.vehicleType}
+                      </span>
+                    </div>
+
+                    <div className="text-[11px] text-text-muted font-mono mt-1 space-y-0.5">
+                      <div>Delivered: <span className="font-bold text-text">{courier.totalDeliveredOrders}</span> waybills</div>
+                      <div className="flex items-center gap-1">
+                        <span>Bank:</span>
+                        {hasBank ? (
+                          <span className="text-emerald-700 font-medium">
+                            {courier.bankDetails?.bank_name} (••••{courier.bankDetails?.account_number?.slice(-4)})
+                          </span>
+                        ) : (
+                          <span className="text-amber-700 font-medium">Bank details pending</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-border pt-2">
+                    <div className="font-mono">
+                      <span className="text-[9px] uppercase text-text-dim block font-bold">Payable Escrow</span>
+                      <span className="text-sm font-black text-emerald-700">
+                        ₦{courier.pendingNgn.toLocaleString('en-NG')}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCourierForPayout(courier)}
+                      disabled={courier.pendingNgn <= 0}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-mono font-bold uppercase rounded shadow-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 transition-colors"
+                      title="Disburse Escrow via Paystack"
+                    >
+                      <span className="material-symbols-outlined text-xs">payments</span>
+                      <span>Disburse</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -263,12 +374,13 @@ export function FinancialLedgerTab({ orders, onRefresh }: FinancialLedgerTabProp
                 <th className="p-3 text-right">Gross GMV</th>
                 <th className="p-3 text-right">Rider Cut (70%)</th>
                 <th className="p-3 text-right">Platform (30%)</th>
+                <th className="p-3 text-right">Escrow Payout</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-text-muted">
+                  <td colSpan={8} className="p-8 text-center text-text-muted">
                     No transactions found matching &quot;{filter}&quot;
                     {searchQuery ? ` and search &quot;${searchQuery}&quot;` : ''}.
                   </td>
@@ -280,6 +392,8 @@ export function FinancialLedgerTab({ orders, onRefresh }: FinancialLedgerTabProp
                   const platformCut = amount - riderCut;
                   const isDelivered = o.status === 'DELIVERED';
                   const isCancelled = o.status === 'CANCELLED';
+                  const isDisbursed = (o as any).metadata?.payout_status === 'DISBURSED';
+                  const payoutRef = (o as any).metadata?.payout_reference;
 
                   return (
                     <tr key={o.id} className="hover:bg-surface-dim transition-colors">
@@ -320,6 +434,49 @@ export function FinancialLedgerTab({ orders, onRefresh }: FinancialLedgerTabProp
                       <td className="p-3 text-right font-bold text-emerald-600">
                         {isCancelled ? '₦0' : `₦${platformCut.toLocaleString('en-NG')}`}
                       </td>
+                      <td className="p-3 text-right">
+                        {isDelivered ? (
+                          isDisbursed ? (
+                            <span
+                              className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 rounded font-mono"
+                              title={`Paystack Reference: ${payoutRef || 'Settled'}`}
+                            >
+                              DISBURSED
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const riderMatch = payoutRoster.find((r) => r.riderId === o.rider_id);
+                                if (riderMatch) {
+                                  setSelectedCourierForPayout(riderMatch);
+                                } else {
+                                  // Fallback dummy courier item
+                                  setSelectedCourierForPayout({
+                                    riderId: o.rider_id || 'unknown',
+                                    name: o.rider_id ? `Courier #${o.rider_id.substring(0, 6)}` : 'Assigned Courier',
+                                    phone: '',
+                                    vehicleType: 'motorcycle',
+                                    rating: 4.8,
+                                    totalDeliveredOrders: 1,
+                                    totalDeliveredGMV: amount,
+                                    totalRiderEarnedNgn: riderCut,
+                                    disbursedNgn: 0,
+                                    pendingNgn: riderCut,
+                                    bankDetails: null,
+                                    eligibleOrderIds: [o.id],
+                                  });
+                                }
+                              }}
+                              className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 rounded cursor-pointer transition-colors"
+                            >
+                              DISBURSE ₦{riderCut.toLocaleString('en-NG')}
+                            </button>
+                          )
+                        ) : (
+                          <span className="text-text-dim text-[10px]">—</span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })
@@ -328,6 +485,18 @@ export function FinancialLedgerTab({ orders, onRefresh }: FinancialLedgerTabProp
           </table>
         </div>
       </div>
+
+      {/* Paystack Direct Escrow Payout Modal */}
+      <DisbursePayoutModal
+        isOpen={!!selectedCourierForPayout}
+        courier={selectedCourierForPayout}
+        onClose={() => setSelectedCourierForPayout(null)}
+        onSuccess={() => {
+          fetchStats();
+          fetchRoster();
+          onRefresh?.();
+        }}
+      />
     </div>
   );
 }

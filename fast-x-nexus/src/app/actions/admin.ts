@@ -18,6 +18,14 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { invalidateJobPool } from '@/lib/cache/redis';
 import { sendWhatsAppMessage, buildRiderDispatchMessage } from '@/lib/whatsapp';
 import { revalidatePath } from 'next/cache';
+import {
+  listNigerianBanks,
+  resolveBankAccount,
+  createTransferRecipient,
+  initiatePaystackTransfer,
+  DEFAULT_NIGERIAN_BANKS,
+  type PaystackBank,
+} from '@/lib/paystack';
 
 function safeRevalidatePath(path: string) {
   try {
@@ -787,4 +795,278 @@ export async function getSystemHealthStats() {
       error: error.message || 'Failed to fetch system health stats',
     };
   }
+}
+
+// ─── Courier Payouts & Paystack Transfers ─────────────────────────────────────
+
+export interface CourierPayoutSummary {
+  riderId: string;
+  name: string;
+  phone: string;
+  avatarUrl?: string;
+  vehicleType: string;
+  rating: number;
+  totalDeliveredOrders: number;
+  totalDeliveredGMV: number;
+  totalRiderEarnedNgn: number; // 70% of totalDeliveredGMV
+  disbursedNgn: number;
+  pendingNgn: number;
+  bankDetails: {
+    bank_name: string;
+    bank_code: string;
+    account_number: string;
+    account_name: string;
+    recipient_code?: string;
+  } | null;
+  eligibleOrderIds: string[];
+}
+
+/**
+ * Aggregates all couriers with delivered orders and calculates their 70% escrow balances,
+ * settled payouts, and outstanding amounts ready for disbursement.
+ */
+export async function getCourierPayoutRoster(): Promise<{
+  success: boolean;
+  couriers: CourierPayoutSummary[];
+  totalPendingNgn: number;
+  totalDisbursedNgn: number;
+  error?: string;
+}> {
+  try {
+    const adminClient = await createAdminClient();
+
+    // 1. Fetch all riders
+    const { data: riders, error: riderErr } = await adminClient
+      .from('profiles')
+      .select('id, whatsapp_contact, metadata')
+      .eq('role', 'rider');
+
+    if (riderErr) throw riderErr;
+
+    // 2. Fetch all DELIVERED orders
+    const { data: deliveredOrders, error: orderErr } = await adminClient
+      .from('orders')
+      .select('id, rider_id, total_amount, metadata, status')
+      .eq('status', 'DELIVERED');
+
+    if (orderErr) throw orderErr;
+
+    const ordersByRider = new Map<string, any[]>();
+    (deliveredOrders || []).forEach((o) => {
+      if (o.rider_id) {
+        const list = ordersByRider.get(o.rider_id) || [];
+        list.push(o);
+        ordersByRider.set(o.rider_id, list);
+      }
+    });
+
+    let systemTotalPending = 0;
+    let systemTotalDisbursed = 0;
+
+    const couriers: CourierPayoutSummary[] = (riders || []).map((r) => {
+      const meta = (r.metadata && typeof r.metadata === 'object') ? r.metadata : {};
+      const riderOrders = ordersByRider.get(r.id) || [];
+
+      const totalDeliveredOrders = riderOrders.length;
+      const totalDeliveredGMV = riderOrders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+      const totalRiderEarnedNgn = Math.round(totalDeliveredGMV * 0.7);
+
+      let disbursedNgn = 0;
+      const eligibleOrderIds: string[] = [];
+
+      riderOrders.forEach((o) => {
+        const orderMeta = (o.metadata && typeof o.metadata === 'object') ? o.metadata : {};
+        if (orderMeta.payout_status === 'DISBURSED') {
+          disbursedNgn += Number(orderMeta.payout_amount) || Math.round(Number(o.total_amount) * 0.7);
+        } else {
+          eligibleOrderIds.push(o.id);
+        }
+      });
+
+      const pendingNgn = Math.max(totalRiderEarnedNgn - disbursedNgn, 0);
+      systemTotalPending += pendingNgn;
+      systemTotalDisbursed += disbursedNgn;
+
+      return {
+        riderId: r.id,
+        name: meta.full_name || `Courier #${r.id.substring(0, 6)}`,
+        phone: r.whatsapp_contact || '',
+        avatarUrl: meta.avatar_url,
+        vehicleType: meta.vehicle_type || 'motorcycle',
+        rating: meta.rating || 4.8,
+        totalDeliveredOrders,
+        totalDeliveredGMV,
+        totalRiderEarnedNgn,
+        disbursedNgn,
+        pendingNgn,
+        bankDetails: meta.bank_details || null,
+        eligibleOrderIds,
+      };
+    });
+
+    // Sort by couriers with pending payouts first
+    couriers.sort((a, b) => b.pendingNgn - a.pendingNgn);
+
+    return {
+      success: true,
+      couriers,
+      totalPendingNgn: systemTotalPending,
+      totalDisbursedNgn: systemTotalDisbursed,
+    };
+  } catch (error: any) {
+    console.error('[Action: getCourierPayoutRoster] Error:', error);
+    return {
+      success: false,
+      couriers: [],
+      totalPendingNgn: 0,
+      totalDisbursedNgn: 0,
+      error: error.message || 'Failed to fetch courier payout roster',
+    };
+  }
+}
+
+/**
+ * Disburses 70% escrow balances directly to a courier's verified bank account via Paystack Transfer.
+ */
+export async function disburseCourierPayoutAction(params: {
+  riderId: string;
+  amountNaira: number;
+  orderIds?: string[];
+  bankDetails?: {
+    bank_name: string;
+    bank_code: string;
+    account_number: string;
+    account_name: string;
+  };
+}): Promise<{
+  success: boolean;
+  reference?: string;
+  transferCode?: string;
+  status?: string;
+  recipientName?: string;
+  bankName?: string;
+  amountNaira?: number;
+  error?: string;
+}> {
+  try {
+    const adminClient = await createAdminClient();
+
+    // 1. Fetch rider profile
+    const { data: profile, error: profileErr } = await adminClient
+      .from('profiles')
+      .select('*')
+      .eq('id', params.riderId)
+      .single();
+
+    if (profileErr || !profile) {
+      return { success: false, error: 'Courier profile not found.' };
+    }
+
+    const currentMeta = (profile.metadata && typeof profile.metadata === 'object') ? profile.metadata : {};
+    const bank = params.bankDetails || currentMeta.bank_details;
+
+    if (!bank || !bank.account_number || !bank.bank_code) {
+      return { success: false, error: 'Courier has no bank account details registered.' };
+    }
+
+    // 2. Resolve recipient code via Paystack
+    let recipientCode = bank.recipient_code;
+    const recipientName = bank.account_name || currentMeta.full_name || 'Fast X Courier';
+
+    if (!recipientCode) {
+      const recipientRes = await createTransferRecipient(
+        recipientName,
+        bank.account_number,
+        bank.bank_code
+      );
+      if (!recipientRes.success || !recipientRes.recipientCode) {
+        return { success: false, error: recipientRes.error || 'Failed to create Paystack transfer recipient.' };
+      }
+      recipientCode = recipientRes.recipientCode;
+
+      // Update profile with cached recipient_code and bank details
+      await adminClient
+        .from('profiles')
+        .update({
+          metadata: {
+            ...currentMeta,
+            bank_details: {
+              ...bank,
+              recipient_code: recipientCode,
+            },
+          },
+        })
+        .eq('id', params.riderId);
+    }
+
+    // 3. Initiate Transfer
+    const transferRes = await initiatePaystackTransfer({
+      amountNaira: params.amountNaira,
+      recipientCode,
+      reason: `Fast X Delivery Escrow Disbursement (Courier: ${recipientName})`,
+    });
+
+    if (!transferRes.success) {
+      return { success: false, error: transferRes.error || 'Paystack transfer failed.' };
+    }
+
+    // 4. Mark associated orders as DISBURSED
+    const orderIds = params.orderIds && params.orderIds.length > 0 ? params.orderIds : [];
+
+    if (orderIds.length > 0) {
+      const { data: ordersToUpdate } = await adminClient
+        .from('orders')
+        .select('id, metadata, total_amount')
+        .in('id', orderIds);
+
+      for (const ord of ordersToUpdate || []) {
+        const ordMeta = (ord.metadata && typeof ord.metadata === 'object') ? ord.metadata : {};
+        await adminClient
+          .from('orders')
+          .update({
+            metadata: {
+              ...ordMeta,
+              payout_status: 'DISBURSED',
+              payout_reference: transferRes.reference,
+              payout_disbursed_at: new Date().toISOString(),
+              payout_amount: Math.round((Number(ord.total_amount) || 0) * 0.7),
+            },
+          })
+          .eq('id', ord.id);
+      }
+    }
+
+    safeRevalidatePath('/admin');
+    safeRevalidatePath('/rider');
+
+    return {
+      success: true,
+      reference: transferRes.reference,
+      transferCode: transferRes.transferCode,
+      status: transferRes.status || 'success',
+      recipientName,
+      bankName: bank.bank_name,
+      amountNaira: params.amountNaira,
+    };
+  } catch (error: any) {
+    console.error('[Action: disburseCourierPayoutAction] Error:', error);
+    return {
+      success: false,
+      error: error.message || 'Payout disbursement transaction failed.',
+    };
+  }
+}
+
+/**
+ * Resolves account name for a 10-digit NUBAN account against a selected bank.
+ */
+export async function resolveCourierAccountAction(accountNumber: string, bankCode: string) {
+  return await resolveBankAccount(accountNumber, bankCode);
+}
+
+/**
+ * Returns list of Nigerian commercial and fintech banks for courier registration.
+ */
+export async function getNigerianBanksAction(): Promise<PaystackBank[]> {
+  return await listNigerianBanks();
 }
