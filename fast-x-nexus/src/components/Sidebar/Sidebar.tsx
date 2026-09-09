@@ -68,6 +68,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const [userData, setUserData] = useState<SidebarUserData | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [adminActiveTab, setAdminActiveTab] = useState<string>('radar');
+  const [adminCounts, setAdminCounts] = useState<{ waybills?: number; riders?: number }>({});
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,11 +87,19 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         setAdminActiveTab(params.get('tab') || 'radar');
       }
     };
+    const handleUpdateCounts = (e: Event) => {
+      const custom = e as CustomEvent;
+      if (custom.detail) {
+        setAdminCounts((prev) => ({ ...prev, ...custom.detail }));
+      }
+    };
     window.addEventListener('fastx:admin:set_tab', handleSetTab);
     window.addEventListener('popstate', handlePopState);
+    window.addEventListener('fastx:admin:update_counts', handleUpdateCounts);
     return () => {
       window.removeEventListener('fastx:admin:set_tab', handleSetTab);
       window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('fastx:admin:update_counts', handleUpdateCounts);
     };
   }, []);
 
@@ -386,7 +395,25 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                       }}
                     >
                       <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
-                      <span>{item.label}</span>
+                      <span className="flex-1 text-left">{item.label}</span>
+                      {item.tab === 'waybills' && typeof adminCounts.waybills === 'number' && adminCounts.waybills > 0 && (
+                        <span
+                          className={`px-1.5 py-0.2 text-[9px] font-black rounded ${
+                            isActive ? 'bg-primary text-white' : 'bg-primary/10 text-primary'
+                          }`}
+                        >
+                          {adminCounts.waybills}
+                        </span>
+                      )}
+                      {item.tab === 'riders' && typeof adminCounts.riders === 'number' && adminCounts.riders > 0 && (
+                        <span
+                          className={`px-1.5 py-0.2 text-[9px] font-black rounded ${
+                            isActive ? 'bg-primary text-white' : 'bg-surface-dim text-text-muted'
+                          }`}
+                        >
+                          {adminCounts.riders}
+                        </span>
+                      )}
                     </button>
                   </motion.li>
                 );

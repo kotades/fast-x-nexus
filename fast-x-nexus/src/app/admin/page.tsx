@@ -28,6 +28,39 @@ import { getAllRidersAdmin } from '@/app/actions/admin';
 
 type AdminTab = 'radar' | 'waybills' | 'riders' | 'ledger' | 'telemetry' | 'chat';
 
+const TAB_CONFIG: Record<AdminTab, { subtitle: string; title: string; description: string }> = {
+  radar: {
+    subtitle: 'OPERATIONS / SPATIAL RADAR',
+    title: 'Live Spatial Radar',
+    description: 'Real-time courier telemetry, speed beacons, and H3 coverage zones across Lagos.',
+  },
+  waybills: {
+    subtitle: 'OPERATIONS / WAYBILL BOARD',
+    title: 'Waybill Pipeline & Dispatch Board',
+    description: 'Live order lifecycle management, manual courier assignment, and dispatch queue.',
+  },
+  riders: {
+    subtitle: 'OPERATIONS / RIDER FLEET OPS',
+    title: 'Courier Fleet Operations',
+    description: 'Rider verification, KYC approval, active roster, and live transit performance.',
+  },
+  ledger: {
+    subtitle: 'FINANCE / ESCROW & LEDGER',
+    title: 'Escrow & Financial Ledger',
+    description: 'System GMV, 70/30 escrow balances, rider payout processing, and margin audits.',
+  },
+  telemetry: {
+    subtitle: 'INFRASTRUCTURE / SYSTEM HEALTH',
+    title: 'System Telemetry & Health',
+    description: 'Database latency, H3 spatial cluster status, and API health monitoring.',
+  },
+  chat: {
+    subtitle: 'COMMUNICATIONS / DISPATCH RADIO',
+    title: 'Omnichannel Operations Comms',
+    description: 'Real-time dispatch radio, courier messaging, and customer assistance channels.',
+  },
+};
+
 function AdminPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -47,6 +80,23 @@ function AdminPageContent() {
       setActiveTab(tabQuery);
     }
   }, [tabQuery]);
+
+  // Listen to browser Back / Forward history popstate
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const t = params.get('tab') as AdminTab;
+        if (t && ['radar', 'waybills', 'riders', 'ledger', 'telemetry', 'chat'].includes(t)) {
+          setActiveTab(t);
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   // Listen to custom event dispatched by Sidebar
   useEffect(() => {
@@ -109,28 +159,34 @@ function AdminPageContent() {
     .filter((o) => o.status !== 'CANCELLED')
     .reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
 
-  const tabs: Array<{ id: AdminTab; label: string; icon: string; count?: number }> = [
-    { id: 'radar', label: 'Spatial Radar', icon: 'radar' },
-    { id: 'waybills', label: 'Waybill Board', icon: 'view_kanban', count: unassignedOrders },
-    { id: 'riders', label: 'Rider Fleet Ops', icon: 'two_wheeler', count: pipelineData.riders.length },
-    { id: 'ledger', label: 'Escrow & Ledger', icon: 'account_balance_wallet' },
-    { id: 'telemetry', label: 'System Health', icon: 'dns' },
-    { id: 'chat', label: 'Omnichannel Comms', icon: 'forum' },
-  ];
+  // Dispatch active count badges to Sidebar
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('fastx:admin:update_counts', {
+          detail: {
+            waybills: unassignedOrders,
+            riders: pipelineData.riders.length,
+          },
+        })
+      );
+    }
+  }, [unassignedOrders, pipelineData.riders.length]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto space-y-6 pb-16 font-sans">
-      {/* Header Title */}
+      {/* Header Title with Dynamic Active Section Context */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-4">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary mb-1">
-            OPERATIONS / CONTROL TOWER
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary mb-1 font-mono flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            {TAB_CONFIG[activeTab]?.subtitle || 'OPERATIONS / CONTROL TOWER'}
           </p>
           <h1 className="text-2xl font-black text-text tracking-tight uppercase">
-            Admin Control Tower
+            {TAB_CONFIG[activeTab]?.title || 'Admin Control Tower'}
           </h1>
           <p className="text-xs text-text-muted mt-1">
-            Live telemetry radar, multi-waypoint dispatch orchestration, and escrow ledger.
+            {TAB_CONFIG[activeTab]?.description || 'Live telemetry radar, multi-waypoint dispatch orchestration, and escrow ledger.'}
           </p>
         </div>
 
@@ -196,42 +252,6 @@ function AdminPageContent() {
             <p className="text-[10px] text-text-muted mt-1">{metric.change}</p>
           </div>
         ))}
-      </div>
-
-      {/* Tab Navigation Strip */}
-      <div className="flex items-center gap-2 border-b border-border overflow-x-auto pb-1">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => changeTab(tab.id)}
-              className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all border-b-2 whitespace-nowrap cursor-pointer ${
-                isActive
-                  ? 'border-primary text-text bg-surface-elevated shadow-sm'
-                  : 'border-transparent text-text-muted hover:text-text hover:bg-surface-low'
-              }`}
-            >
-              <span
-                className={`material-symbols-outlined text-base ${
-                  isActive ? 'text-primary' : 'text-text-dim'
-                }`}
-              >
-                {tab.icon}
-              </span>
-              <span>{tab.label}</span>
-              {tab.count !== undefined && tab.count > 0 && (
-                <span
-                  className={`px-1.5 py-0.2 text-[9px] font-black ${
-                    isActive ? 'bg-primary/20 text-primary' : 'bg-surface-dim text-text-muted'
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
       </div>
 
       {/* Tab Views */}
