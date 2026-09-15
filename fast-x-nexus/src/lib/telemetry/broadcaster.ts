@@ -81,7 +81,15 @@ export async function broadcastRiderTelemetry(payload: TelemetryPayload) {
     });
   }
 
-  // 3. Upsert to rider_locations table
+  // 3. Broadcast to fleet_telemetry_radar channel for Admin Spatial Tower
+  const fleetChannel = supabase.channel('fleet_telemetry_radar');
+  await fleetChannel.send({
+    type: 'broadcast',
+    event: 'location_changed',
+    payload: broadcastData,
+  });
+
+  // 4. Upsert to rider_locations table
   const { error: dbError } = await supabase
     .from('rider_locations')
     .upsert(

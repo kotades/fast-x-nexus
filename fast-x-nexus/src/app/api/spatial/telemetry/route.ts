@@ -4,7 +4,7 @@ import { updateRiderLocation } from '@/app/actions/rider';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { latitude, longitude } = body;
+    const { latitude, longitude, riderId, orderId, speed, heading } = body;
 
     if (typeof latitude !== 'number' || typeof longitude !== 'number') {
       return NextResponse.json(
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await updateRiderLocation(latitude, longitude);
+    const result = await updateRiderLocation(latitude, longitude, orderId, riderId, speed, heading);
 
     if (!result.success) {
       return NextResponse.json(

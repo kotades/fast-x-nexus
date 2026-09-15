@@ -46,7 +46,9 @@ export async function updateRiderLocation(
   lat: number,
   lng: number,
   orderId?: string,
-  explicitRiderId?: string
+  explicitRiderId?: string,
+  speed?: number,
+  heading?: number
 ): Promise<ActionResult<{ h3_cell: string }>> {
   const ctx = await getEffectiveRiderContext();
   const riderId = explicitRiderId || ctx.riderId;
@@ -60,6 +62,8 @@ export async function updateRiderLocation(
     orderId,
     latitude: lat,
     longitude: lng,
+    speed,
+    heading,
     h3Cell,
   });
 

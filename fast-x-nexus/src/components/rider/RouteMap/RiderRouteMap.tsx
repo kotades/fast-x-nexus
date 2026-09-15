@@ -181,7 +181,19 @@ export function RiderRouteMap() {
       { enableHighAccuracy: true, maximumAge: 2500, timeout: 6000 }
     );
 
-    return () => navigator.geolocation.clearWatch(watchId);
+    // Listen to persistent RiderTelemetryWatcher updates
+    const handleCustomLocation = (e: Event) => {
+      const customEvent = e as CustomEvent<{ lat: number; lng: number }>;
+      if (customEvent.detail && isWithinNigeria(customEvent.detail.lat, customEvent.detail.lng)) {
+        setRiderCoords({ lat: customEvent.detail.lat, lng: customEvent.detail.lng });
+      }
+    };
+    window.addEventListener('fastx:rider:location_updated', handleCustomLocation);
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+      window.removeEventListener('fastx:rider:location_updated', handleCustomLocation);
+    };
   }, [syncTelemetryToBackend]);
 
   // Resolve Nigerian Coordinates for current job addresses

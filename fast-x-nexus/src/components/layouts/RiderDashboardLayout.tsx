@@ -10,6 +10,7 @@ import { Header } from '@/components/Header/Header';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { RiderDispatchChat } from '@/components/chat/RiderDispatchChat';
 import { VisibilityWrapper } from '@/components/ui/VisibilityWrapper';
+import { RiderTelemetryWatcher } from '@/components/rider/telemetry/RiderTelemetryWatcher';
 
 export function RiderDashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -25,6 +26,7 @@ export function RiderDashboardLayout({ children }: { children: React.ReactNode }
           </main>
         </div>
         <RiderDispatchChat />
+        <RiderTelemetryWatcher />
       </div>
     </VisibilityWrapper>
   );
