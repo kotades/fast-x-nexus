@@ -20,10 +20,25 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 // ─── Route Classification ─────────────────────────────────────────────────────
 /** Routes that unauthenticated users CAN access */
-const PUBLIC_ROUTES = ['/login', '/terms', '/privacy', '/', '/onboarding/rider', '/rider/onboarding', '/admin/login'];
+const PUBLIC_ROUTES = [
+  '/',
+  '/login',
+  '/booking',
+  '/tracking',
+  '/about',
+  '/solutions',
+  '/fleet',
+  '/network',
+  '/contact',
+  '/terms',
+  '/privacy',
+  '/onboarding/rider',
+  '/rider/onboarding',
+  '/admin/login',
+];
 
 /** Routes that require an authenticated session */
-const PROTECTED_PREFIXES = ['/booking', '/jobs', '/admin', '/customer', '/rider', '/profile'];
+const PROTECTED_PREFIXES = ['/jobs', '/admin', '/customer', '/rider', '/profile'];
 
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some((r) => pathname === r || pathname.startsWith(r + '/'));

@@ -7,7 +7,7 @@ import { DataVisualization } from "../animations/DataVisualization";
 
 export function OperationsIntel() {
   const ref = useRef<HTMLElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isInView = useInView(ref, { once: true, margin: "100px" });
 
   const graphData = [20, 40, 35, 60, 50, 80, 45];
 

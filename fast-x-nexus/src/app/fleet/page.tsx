@@ -136,7 +136,7 @@ export default function FleetPage() {
                 </div>
               </div>
 
-              <button className="w-full bg-[var(--color-surface)] hover:bg-[var(--color-surface-dim)] border border-[var(--color-border)] py-2 text-xs font-bold font-mono uppercase tracking-wider text-[var(--color-text)] cursor-pointer rounded-none transition-colors duration-200">
+              <button className="w-full bg-[var(--color-surface)] hover:bg-[var(--color-surface-dim)] border border-[var(--color-border)] py-3 min-h-[44px] flex items-center justify-center text-xs font-bold font-mono uppercase tracking-wider text-[var(--color-text)] cursor-pointer rounded-none transition-colors duration-200">
                 Deploy Unit
               </button>
             </motion.div>

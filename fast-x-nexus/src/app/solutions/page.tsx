@@ -72,10 +72,10 @@ export default function SolutionsPage() {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab as 'booking' | 'webhook')}
-                    className={`px-3 py-1 font-mono text-[10px] uppercase font-bold border transition-colors duration-200 cursor-pointer rounded-none ${
+                    className={`px-3.5 py-2 min-h-[44px] inline-flex items-center justify-center font-mono text-[10px] uppercase font-bold border transition-colors duration-200 cursor-pointer rounded-none ${
                       activeTab === tab
-                        ? 'border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary-muted)]/10'
-                        : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                        ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
+                        : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-dim)] hover:text-[var(--color-text)]'
                     }`}
                   >
                     {tab === 'booking' ? 'CREATE_ORDER' : 'WEBHOOK_EVENT'}

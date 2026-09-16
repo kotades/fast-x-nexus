@@ -10,7 +10,7 @@ import { motion, useInView } from 'framer-motion';
 
 export function NetworkSection() {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.15 });
+  const isInView = useInView(ref, { once: true, margin: "100px" });
 
   return (
     <section ref={ref} id="network-section" className="py-20 bg-[var(--color-surface-elevated)] border-b border-[var(--color-border)]">

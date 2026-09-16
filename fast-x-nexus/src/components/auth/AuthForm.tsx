@@ -153,19 +153,19 @@ function AuthFormInner() {
   // ── Shared UI Styles ───────────────────────────────────────────────────────
   const inputClass =
     'w-full bg-brand-surface border border-brand-border text-brand-text placeholder-brand-muted/70 ' +
-    'px-4 py-3 text-sm focus:outline-none focus:border-brand-green transition-colors duration-150';
+    'px-4 py-3 min-h-[44px] text-sm focus:outline-none focus:border-brand-green transition-colors duration-150';
 
   const btnClass =
-    'w-full bg-brand-green text-white font-bold text-sm py-3 px-6 ' +
+    'w-full bg-brand-green text-white font-bold text-sm py-3.5 px-6 min-h-[48px] flex items-center justify-center ' +
     'hover:bg-[#285b1e] active:bg-[#1f4517] transition-colors duration-150 ' +
-    'disabled:opacity-40 disabled:cursor-not-allowed';
+    'disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer';
 
   const googleBtnClass =
-    'w-full bg-white text-gray-800 border border-gray-300 font-bold text-sm py-3 px-6 flex items-center justify-center gap-3 ' +
-    'hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 disabled:opacity-40 shadow-sm';
+    'w-full bg-white text-gray-800 border border-gray-300 font-bold text-sm py-3 px-6 min-h-[44px] flex items-center justify-center gap-3 ' +
+    'hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 disabled:opacity-40 shadow-sm cursor-pointer';
 
   const tabClass = (active: boolean) =>
-    `flex-1 pb-2.5 text-center text-[10px] font-black uppercase tracking-widest border-b-2 transition-all duration-300 font-mono ${
+    `flex-1 py-3 px-4 min-h-[44px] flex items-center justify-center text-center text-xs font-black uppercase tracking-wider border-b-2 transition-all duration-300 font-mono ${
       active ? 'border-brand-green text-brand-text' : 'border-transparent text-brand-muted hover:text-brand-text'
     }`;
 
@@ -257,7 +257,7 @@ function AuthFormInner() {
           <button
             type="button"
             onClick={() => { setPhoneStep('phone'); setOtp(''); setErrorMessage(null); }}
-            className="text-xs text-brand-muted hover:text-brand-green transition-colors text-center"
+            className="text-xs text-brand-muted hover:text-brand-green transition-colors text-center min-h-[44px] inline-flex items-center justify-center"
           >
             ← Change number
           </button>

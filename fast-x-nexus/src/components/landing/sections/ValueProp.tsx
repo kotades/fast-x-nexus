@@ -6,7 +6,7 @@ import { GlassCard } from "../ui/GlassCard";
 
 export function ValueProp() {
   const ref = useRef<HTMLElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isInView = useInView(ref, { once: true, margin: "100px" });
 
   const features = [
     {

@@ -155,7 +155,7 @@ export default function AdminLoginPage() {
                 type="button"
                 onClick={handleQuickAdminLogin}
                 disabled={isPending}
-                className="w-full py-2 px-3 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-mono text-xs font-bold rounded-md transition-colors shadow-sm flex items-center justify-center gap-1.5 min-h-[40px]"
+                className="w-full py-2.5 px-3 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-mono text-xs font-bold rounded-md transition-colors shadow-sm flex items-center justify-center gap-1.5 min-h-[44px] cursor-pointer"
               >
                 {isPending ? (
                   <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
@@ -216,7 +216,7 @@ export default function AdminLoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@fastx.ng"
                     disabled={isPending}
-                    className="w-full pl-9 pr-3 py-2.5 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#006B3F] focus:border-transparent font-sans"
+                    className="w-full pl-9 pr-3 py-2.5 h-11 min-h-[44px] bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#006B3F] focus:border-transparent font-sans"
                   />
                 </div>
               </div>
@@ -243,14 +243,14 @@ export default function AdminLoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
                     disabled={isPending}
-                    className="w-full pl-9 pr-10 py-2.5 bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#006B3F] focus:border-transparent font-mono"
+                    className="w-full pl-9 pr-11 py-2.5 h-11 min-h-[44px] bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#006B3F] focus:border-transparent font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     tabIndex={-1}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#94A3B8] hover:text-[#334155]"
+                    className="absolute inset-y-0 right-0 w-11 h-full min-h-[44px] flex items-center justify-center text-[#94A3B8] hover:text-[#334155] cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-sm">
                       {showPassword ? 'visibility_off' : 'visibility'}
@@ -262,7 +262,7 @@ export default function AdminLoginPage() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="w-full py-2.5 px-4 bg-[#006B3F] hover:bg-[#005230] active:bg-[#004225] disabled:opacity-50 text-white font-mono text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2 min-h-[44px] mt-2"
+                className="w-full py-3 px-4 bg-[#006B3F] hover:bg-[#005230] active:bg-[#004225] disabled:opacity-50 text-white font-mono text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2 min-h-[48px] mt-2 cursor-pointer"
               >
                 {isPending ? (
                   <>
@@ -282,7 +282,7 @@ export default function AdminLoginPage() {
             <div className="mt-6 pt-4 border-t border-[#E2E8F0] text-center">
               <a
                 href="/login"
-                className="inline-flex items-center gap-1.5 text-xs font-sans text-[#64748B] hover:text-[#006B3F] transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 text-xs font-sans text-[#64748B] hover:text-[#006B3F] transition-colors min-h-[44px] py-2 px-3"
               >
                 <span className="material-symbols-outlined text-xs">arrow_back</span>
                 Return to Customer & Driver Login

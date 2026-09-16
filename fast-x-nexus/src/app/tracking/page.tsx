@@ -124,13 +124,13 @@ export default function TrackingPage() {
                   placeholder="e.g. FX-LOGISTICS-7A9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] px-3 py-2.5 text-xs text-[var(--color-text)] outline-none rounded-none focus:border-[var(--color-primary)] font-mono uppercase"
+                  className="w-full min-h-[44px] bg-[var(--color-surface)] border border-[var(--color-border)] px-4 py-3 text-xs text-[var(--color-text)] outline-none rounded-none focus:border-[var(--color-primary)] font-mono uppercase"
                 />
               </div>
               <button
                 type="submit"
                 disabled={isScanning}
-                className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 text-white py-2.5 font-mono text-xs font-black uppercase tracking-widest transition-colors duration-200 cursor-pointer rounded-none flex items-center justify-center gap-1.5"
+                className="w-full min-h-[44px] bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 text-white py-3 font-mono text-xs font-black uppercase tracking-widest transition-colors duration-200 cursor-pointer rounded-none flex items-center justify-center gap-1.5"
               >
                 {isScanning ? (
                   <>

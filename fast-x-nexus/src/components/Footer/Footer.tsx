@@ -22,7 +22,7 @@ import { Logo } from '@/components/ui/Logo';
 
 export function Footer() {
   const footerRef = useRef<HTMLElement>(null);
-  const isInView = useInView(footerRef, { once: true, amount: 0.2 });
+  const isInView = useInView(footerRef, { once: true, margin: "150px" });
 
   return (
     <>
@@ -195,7 +195,7 @@ export function Footer() {
             <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <a
                 href="/login/admin"
-                className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-[var(--color-primary)] hover:underline"
+                className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-[var(--color-primary)] hover:underline min-h-[44px] py-2 px-2"
               >
                 <span className="material-symbols-outlined text-sm" aria-hidden="true">admin_panel_settings</span>
                 <span>Admin Login</span>

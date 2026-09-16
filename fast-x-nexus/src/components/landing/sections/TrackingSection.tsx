@@ -32,7 +32,7 @@ const TRACKING_DB: Record<string, {
 
 export function TrackingSection() {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isInView = useInView(ref, { once: true, margin: "100px" });
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<typeof TRACKING_DB[string] | null>(null);
   const [searched, setSearched] = useState(false);

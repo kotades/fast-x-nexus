@@ -37,7 +37,7 @@ const FLEETS = [
 
 export function FleetSection() {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.15 });
+  const isInView = useInView(ref, { once: true, margin: "100px" });
 
   return (
     <section ref={ref} id="fleet-section" className="py-20 bg-[var(--color-surface-elevated)] border-b border-[var(--color-border)]">

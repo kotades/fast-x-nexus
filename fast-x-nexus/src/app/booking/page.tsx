@@ -17,20 +17,15 @@ import { GlassCard } from '@/components/landing/ui/GlassCard';
 import { AnimatedButton } from '@/components/landing/ui/AnimatedButton';
 
 function HeroSection() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.3 });
-
   return (
     <section
-      ref={ref}
       className="relative w-full overflow-hidden bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white min-h-[50vh] flex items-center pt-[72px]"
     >
-
       <div className="max-w-screen-2xl mx-auto px-6 lg:px-8 relative z-10 w-full py-16 lg:py-24">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
           className="space-y-6 max-w-3xl"
         >
           <div className="inline-flex items-center gap-2 px-3 py-2 bg-white/10 backdrop-blur-md border border-white/20">
@@ -50,7 +45,7 @@ function HeroSection() {
       </div>
 
       <div
-        className="absolute bottom-0 right-0 z-20 h-24 w-1/2 bg-[var(--color-surface)]"
+        className="hidden md:block absolute bottom-0 right-0 z-20 h-24 w-1/2 bg-[var(--color-surface)] pointer-events-none"
         style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }}
       />
     </section>
@@ -59,7 +54,7 @@ function HeroSection() {
 
 function RateEstimator() {
   const ref = useRef<HTMLElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isInView = useInView(ref, { once: true, margin: "100px" });
   const [weight, setWeight] = useState(10);
   const [distance, setDistance] = useState(250);
 
@@ -111,7 +106,7 @@ function RateEstimator() {
                     max={500}
                     value={weight}
                     onChange={(e) => setWeight(Number(e.target.value))}
-                    className="w-full accent-[var(--color-primary)] cursor-ew-resize h-2"
+                    className="w-full accent-[var(--color-primary)] cursor-ew-resize h-11 min-h-[44px] py-2"
                   />
                   <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
                     <span>1kg</span>
@@ -131,7 +126,7 @@ function RateEstimator() {
                     max={1500}
                     value={distance}
                     onChange={(e) => setDistance(Number(e.target.value))}
-                    className="w-full accent-[var(--color-primary)] cursor-ew-resize h-2"
+                    className="w-full accent-[var(--color-primary)] cursor-ew-resize h-11 min-h-[44px] py-2"
                   />
                   <div className="flex justify-between text-xs text-[var(--color-text-muted)] mt-1">
                     <span>10km</span>
@@ -179,7 +174,7 @@ function RateEstimator() {
 
 function VehicleClassSection() {
   const ref = useRef<HTMLElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isInView = useInView(ref, { once: true, margin: "100px" });
 
   const vehicles = [
     {
@@ -261,7 +256,7 @@ function VehicleClassSection() {
 
 function BookingCTA() {
   const ref = useRef<HTMLElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isInView = useInView(ref, { once: true, margin: "100px" });
 
   return (
     <section ref={ref} className="py-16 lg:py-24 relative overflow-hidden bg-[var(--color-primary)] text-white">

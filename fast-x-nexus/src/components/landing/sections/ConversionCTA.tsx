@@ -6,7 +6,7 @@ import { AnimatedButton } from "../ui/AnimatedButton";
 
 export function ConversionCTA() {
   const ref = useRef<HTMLElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const isInView = useInView(ref, { once: true, margin: "100px" });
 
   return (
     <section ref={ref} className="py-16 lg:py-24 relative overflow-hidden bg-[var(--color-primary)] text-white border-b border-[var(--color-border)]">

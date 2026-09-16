@@ -16,15 +16,11 @@ import { Footer } from '@/components/Footer/Footer';
 import { GlassCard } from '@/components/landing/ui/GlassCard';
 
 export default function LoginPage() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.1 });
-
   return (
     <div className="flex flex-col min-h-screen bg-[var(--color-surface)]">
       <LandingHeader />
 
       <main 
-        ref={ref}
         className="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden bg-[var(--color-surface)] text-[var(--color-text)] py-16 lg:py-24"
       >
         {/* Industrial Subgrid Backing */}
@@ -38,9 +34,9 @@ export default function LoginPage() {
 
         <div className="max-w-md w-full mx-auto relative z-10 px-4">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
           >
             <GlassCard className="p-8 border-l-4 border-l-[var(--color-primary)] bg-[var(--color-surface-elevated)] !text-[var(--color-text)]">
               {/* Heading */}
@@ -63,7 +59,7 @@ export default function LoginPage() {
               <div className="mt-6 pt-5 border-t border-[var(--color-border)] text-center">
                 <a
                   href="/login/admin"
-                  className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-[var(--color-primary)] hover:underline transition-colors"
+                  className="inline-flex items-center justify-center gap-1.5 text-xs font-mono font-bold text-[var(--color-primary)] hover:underline transition-colors min-h-[44px] py-2 px-3"
                 >
                   <span className="material-symbols-outlined text-sm" aria-hidden="true">admin_panel_settings</span>
                   <span>Operations Staff? Enter Admin Portal &rarr;</span>
@@ -71,24 +67,24 @@ export default function LoginPage() {
               </div>
 
               {/* Footer note */}
-              <p className="mt-6 text-center text-xs text-[var(--color-text-muted)]">
+              <div className="mt-6 text-center text-xs text-[var(--color-text-muted)] leading-relaxed">
                 By signing in, you agree to the{' '}
-                <a href="/terms" className="text-[var(--color-text)] hover:text-[var(--color-primary)] underline transition-colors">
+                <a href="/terms" className="text-[var(--color-text)] hover:text-[var(--color-primary)] underline transition-colors min-h-[44px] inline-flex items-center px-1">
                   Terms of Service
                 </a>
                 {' '}and{' '}
-                <a href="/privacy" className="text-[var(--color-text)] hover:text-[var(--color-primary)] underline transition-colors">
+                <a href="/privacy" className="text-[var(--color-text)] hover:text-[var(--color-primary)] underline transition-colors min-h-[44px] inline-flex items-center px-1">
                   Privacy Policy
                 </a>
                 .
-              </p>
+              </div>
             </GlassCard>
           </motion.div>
         </div>
         
-        {/* Diagonal structural element */}
+        {/* Diagonal structural element (desktop only) */}
         <div
-          className="absolute bottom-0 right-0 z-20 h-16 w-1/3 bg-[var(--color-surface)]"
+          className="hidden md:block absolute bottom-0 right-0 z-20 h-16 w-1/3 bg-[var(--color-surface)] pointer-events-none"
           style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
         />
       </main>

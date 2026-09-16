@@ -25,7 +25,7 @@ const PAYLOADS = {
 
 export function SolutionsSection() {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.15 });
+  const isInView = useInView(ref, { once: true, margin: "100px" });
   const [tab, setTab] = useState<'booking' | 'response'>('booking');
 
   return (

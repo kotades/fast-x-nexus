@@ -157,7 +157,7 @@ export default function RiderOnboardingPage() {
                           placeholder="e.g. Babatunde Adeleke"
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
-                          className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+                          className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-3 min-h-[44px] text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
                         />
                       </div>
 
@@ -173,7 +173,7 @@ export default function RiderOnboardingPage() {
                               placeholder="courier@example.com"
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
-                              className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+                              className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-3 min-h-[44px] text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
                             />
                           </div>
 
@@ -187,7 +187,7 @@ export default function RiderOnboardingPage() {
                               placeholder="Min. 6 characters"
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
-                              className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+                              className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-3 min-h-[44px] text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
                             />
                           </div>
                         </div>
@@ -203,7 +203,7 @@ export default function RiderOnboardingPage() {
                           placeholder="+234 801 234 5678"
                           value={whatsappPhone}
                           onChange={(e) => setWhatsappPhone(e.target.value)}
-                          className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
+                          className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-3 min-h-[44px] text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-colors"
                         />
                         <p className="text-[9px] text-[var(--color-text-dim)] mt-1">
                           We will dispatch delivery PIN codes and order waybills to this WhatsApp line.
@@ -216,7 +216,7 @@ export default function RiderOnboardingPage() {
                         type="button"
                         disabled={!fullName || (!user && (!email || password.length < 6)) || !whatsappPhone}
                         onClick={() => setStep(2)}
-                        className="px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-mono font-black uppercase tracking-wider flex items-center gap-2 disabled:opacity-40 transition-all cursor-pointer shadow-md"
+                        className="w-full sm:w-auto px-6 py-3 min-h-[48px] bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-40 transition-all cursor-pointer shadow-md"
                       >
                         Next: Vehicle Specs →
                       </button>
@@ -278,7 +278,7 @@ export default function RiderOnboardingPage() {
                           placeholder="e.g. KRD-842-XY (or N/A)"
                           value={vehiclePlate}
                           onChange={(e) => setVehiclePlate(e.target.value)}
-                          className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] uppercase transition-colors"
+                          className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-3 min-h-[44px] text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] uppercase transition-colors"
                         />
                       </div>
 
@@ -291,23 +291,23 @@ export default function RiderOnboardingPage() {
                           placeholder="e.g. NIN-92817264810"
                           value={driverLicenseNumber}
                           onChange={(e) => setDriverLicenseNumber(e.target.value)}
-                          className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] uppercase transition-colors"
+                          className="w-full bg-white border border-[var(--color-border)] text-[var(--color-text)] px-4 py-3 min-h-[44px] text-xs font-mono focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] uppercase transition-colors"
                         />
                       </div>
                     </div>
 
-                    <div className="pt-3 flex justify-between">
+                    <div className="pt-3 flex flex-col sm:flex-row gap-3 justify-between">
                       <button
                         type="button"
                         onClick={() => setStep(1)}
-                        className="px-4 py-2.5 border border-[var(--color-border)] bg-[var(--color-slate-50)] text-[var(--color-text)] hover:bg-[var(--color-slate-100)] text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
+                        className="w-full sm:w-auto px-4 py-3 min-h-[48px] flex items-center justify-center border border-[var(--color-border)] bg-[var(--color-slate-50)] text-[var(--color-text)] hover:bg-[var(--color-slate-100)] text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
                       >
                         ← Back
                       </button>
                       <button
                         type="button"
                         onClick={() => setStep(3)}
-                        className="px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-mono font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-md"
+                        className="w-full sm:w-auto px-6 py-3 min-h-[48px] bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white text-xs font-mono font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
                       >
                         Next: Operating Hub →
                       </button>
@@ -371,18 +371,18 @@ export default function RiderOnboardingPage() {
                       </p>
                     </div>
 
-                    <div className="pt-3 flex justify-between">
+                    <div className="pt-3 flex flex-col sm:flex-row gap-3 justify-between">
                       <button
                         type="button"
                         onClick={() => setStep(2)}
-                        className="px-4 py-2.5 border border-[var(--color-border)] bg-[var(--color-slate-50)] text-[var(--color-text)] hover:bg-[var(--color-slate-100)] text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
+                        className="w-full sm:w-auto px-4 py-3 min-h-[48px] flex items-center justify-center border border-[var(--color-border)] bg-[var(--color-slate-50)] text-[var(--color-text)] hover:bg-[var(--color-slate-100)] text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
                       >
                         ← Back
                       </button>
                       <button
                         type="submit"
                         disabled={isPending}
-                        className="px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-mono font-black text-xs uppercase tracking-widest flex items-center gap-2 disabled:opacity-50 transition-all cursor-pointer shadow-md"
+                        className="w-full sm:w-auto px-6 py-3 min-h-[48px] bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white font-mono font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer shadow-md"
                       >
                         {isPending ? 'ACTIVATING COURIER...' : 'ACTIVATE RIDER PROFILE →'}
                       </button>

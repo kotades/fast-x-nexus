@@ -8,12 +8,8 @@ import { DashboardMockup } from "../animations/DashboardMockup";
 import { AnimatedButton } from "../ui/AnimatedButton";
 
 export function HeroSection() {
-  const heroRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(heroRef, { once: true, amount: 0.5 });
-
   return (
     <section
-      ref={heroRef}
       className="relative w-full overflow-hidden bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white min-h-[85vh] flex items-center pt-[72px]"
     >
       {/* Floating abstract orbs */}
@@ -36,9 +32,9 @@ export function HeroSection() {
           <div className="space-y-6 py-12 lg:py-16">
             {/* Response Time Promise Badge */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.2, duration: 0.5 }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
               className="inline-flex flex-wrap items-center gap-2 px-3.5 py-2 bg-[var(--color-primary)]/20 border border-[var(--color-primary)]/40 rounded-none text-xs font-mono font-bold uppercase tracking-wider"
             >
               <span className="material-symbols-outlined text-[var(--color-accent)] text-[18px]" aria-hidden="true">bolt</span>
@@ -47,9 +43,9 @@ export function HeroSection() {
 
             {/* Headline */}
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.3, duration: 0.6 }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
               className="text-4xl md:text-5xl lg:text-7xl font-black font-sans leading-tight tracking-tighter text-white"
             >
               <TypewriterText text="Speed. Efficiency." speed={15} className="block text-white" />
@@ -60,9 +56,9 @@ export function HeroSection() {
 
             {/* Subheadline */}
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.5, duration: 0.5 }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.5 }}
               className="text-base lg:text-lg text-white/80 font-sans max-w-2xl leading-relaxed border-l-4 border-[var(--color-accent)] pl-4"
             >
               High-velocity logistics infrastructure engineered for Lagos enterprises.
@@ -72,9 +68,9 @@ export function HeroSection() {
 
             {/* CTA Buttons & Hotline */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.7, duration: 0.5 }}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
               className="space-y-4 pt-2"
             >
               <div className="flex flex-col sm:flex-row gap-4">
@@ -112,7 +108,7 @@ export function HeroSection() {
           {/* Right: Dashboard Mockup */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6, duration: 0.8 }}
             className="relative w-full h-[400px] lg:h-[550px] hidden lg:flex items-center justify-center"
           >
@@ -121,9 +117,9 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Diagonal structural element */}
+      {/* Diagonal structural element (desktop only to prevent awkward mobile white gap) */}
       <div
-        className="absolute bottom-0 right-0 z-20 h-16 w-1/3 bg-[var(--color-surface)] pointer-events-none"
+        className="hidden md:block absolute bottom-0 right-0 z-20 h-16 w-1/3 bg-[var(--color-surface)] pointer-events-none"
         style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
       />
     </section>
