@@ -64,7 +64,6 @@ export function RiderTelemetryWatcher() {
   const [heading, setHeading] = useState<number>(0);
   const [h3Cell, setH3Cell] = useState<string>('');
   const [lastSyncTime, setLastSyncTime] = useState<string>('');
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   const lastCoordsRef = useRef<Coordinates>(coords);
   const lastSyncTimeRef = useRef<number>(0);
@@ -196,79 +195,6 @@ export function RiderTelemetryWatcher() {
     };
   }, [syncCoordinates, coords.lat, coords.lng, speed, heading]);
 
-  return (
-    <aside
-      aria-label="Rider Live Telemetry Indicator"
-      className="fixed bottom-4 right-4 z-[999] pointer-events-auto select-none"
-    >
-      <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-md rounded-lg overflow-hidden transition-all duration-200">
-        {/* Compact Pill */}
-        <div
-          onClick={() => setIsExpanded((prev) => !prev)}
-          className="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-slate-50 transition-colors"
-          title="Click to view full GPS telemetry stream"
-        >
-          <span className="relative flex h-2 w-2">
-            <span
-              className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                status === 'watching' || status === 'locked'
-                  ? 'bg-emerald-400'
-                  : status === 'simulated'
-                  ? 'bg-primary'
-                  : 'bg-amber-400'
-              }`}
-            ></span>
-            <span
-              className={`relative inline-flex rounded-full h-2 w-2 ${
-                status === 'watching' || status === 'locked'
-                  ? 'bg-emerald-500'
-                  : status === 'simulated'
-                  ? 'bg-primary'
-                  : 'bg-amber-500'
-              }`}
-            ></span>
-          </span>
-
-          <span className="font-mono text-[11px] font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
-            <span className="text-[10px] text-slate-400 uppercase">GPS</span>
-            <span>
-              {status === 'watching' || status === 'locked' ? 'ACTIVE' : status === 'simulated' ? 'SIMULATED' : 'ACQUIRING'}
-            </span>
-          </span>
-
-          <span className="text-[10px] font-mono text-slate-400 hidden sm:inline">
-            {coords.lat.toFixed(4)}°N, {coords.lng.toFixed(4)}°E
-          </span>
-
-          <span className="material-symbols-outlined text-xs text-slate-400">
-            {isExpanded ? 'expand_more' : 'expand_less'}
-          </span>
-        </div>
-
-        {/* Expanded Telemetry Drawer */}
-        {isExpanded && (
-          <div className="border-t border-slate-100 p-2.5 bg-slate-50/50 space-y-1.5 font-mono text-[10px] text-slate-600 min-w-[240px]">
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">H3 Index (Res 8):</span>
-              <span className="font-bold text-slate-900">{h3Cell || 'Calculating...'}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">Speed / Heading:</span>
-              <span className="font-bold text-slate-900">{speed} km/h • {heading}°</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">Last Telemetry Ping:</span>
-              <span className="font-bold text-slate-900">{lastSyncTime || 'Pending'}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-slate-400">Active Cargo Bound:</span>
-              <span className="font-bold text-emerald-700">
-                {activeJob?.orderId ? `#${activeJob.orderId.substring(0, 8)}` : 'Standby'}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-    </aside>
-  );
+  // Headless background telemetry watcher (no visual UI clutter)
+  return null;
 }

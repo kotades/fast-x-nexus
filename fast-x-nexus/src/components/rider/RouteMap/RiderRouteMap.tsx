@@ -99,7 +99,7 @@ export function RiderRouteMap() {
   const [pickupPin, setPickupPin] = useState('');
   const [deliveryPin, setDeliveryPin] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [isCardCollapsed, setIsCardCollapsed] = useState(false);
+  const [isCardCollapsed, setIsCardCollapsed] = useState(true);
   const [isPending, startTransition] = useTransition();
 
   const { navigateTo } = useRiderDashboard();
@@ -344,15 +344,13 @@ export function RiderRouteMap() {
         />
       </div>
 
-      {/* Mobile Ultra-Lean Floating ETA Pill (Top Center) */}
+      {/* Mobile Ultra-Lean Floating ETA Pill (Top Left — Compact & Non-Interfering) */}
       {currentJob && distances && (
-        <div className="sm:hidden absolute top-2 inset-x-0 z-10 flex justify-center pointer-events-none px-3">
-          <div className="bg-white/95 backdrop-blur-md border border-slate-200 px-3 py-1 rounded-full shadow-md flex items-center gap-2 text-[10px] font-mono pointer-events-auto text-slate-800">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-bold">
-              {isPickedUp
-                ? `${distances.toDropoffKm} km (~${distances.toDropoffEta}m to Dropoff)`
-                : `${distances.toPickupKm} km (~${distances.toPickupEta}m to Pickup)`}
+        <div className="sm:hidden absolute top-2.5 left-2.5 z-10 pointer-events-auto">
+          <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1.5 text-[9px] font-mono font-bold text-slate-800">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="tracking-tight">
+              {isPickedUp ? distances.toDropoffKm : distances.toPickupKm}km • ~{isPickedUp ? distances.toDropoffEta : distances.toPickupEta}m
             </span>
           </div>
         </div>
@@ -556,7 +554,7 @@ export function RiderRouteMap() {
       )}
 
       {/* Floating Bottom Dispatch Drawer */}
-      <div className={`mt-auto relative ${isCardCollapsed ? 'z-20' : 'z-40'} w-full px-2.5 sm:px-4 pb-2 sm:pb-4 max-w-3xl mx-auto pointer-events-auto`}>
+      <div className={`mt-auto relative ${isCardCollapsed ? 'z-20 pl-2 pr-12 sm:px-4' : 'z-40 px-2 sm:px-4'} w-full pb-1.5 sm:pb-3 max-w-3xl mx-auto pointer-events-auto`}>
         <AnimatePresence mode="wait">
           {loading ? (
             <motion.div
@@ -564,89 +562,72 @@ export function RiderRouteMap() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="bg-surface-elevated/95 backdrop-blur-xl border border-border border-l-4 border-l-primary rounded-2xl p-4 shadow-2xl space-y-2.5"
+              className="bg-surface-elevated/95 backdrop-blur-xl border border-border border-l-4 border-l-primary rounded-xl p-3 shadow-xl space-y-1.5"
             >
-              <Skeleton className="h-4 w-40" />
-              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-3.5 w-32" />
+              <Skeleton className="h-8 w-full" />
             </motion.div>
           ) : currentJob ? (
-            /* Active Job Dispatch Panel — Full Span & High Visual Individuality */
+            /* Active Job Dispatch Panel — Ultra-Lean & Space-Maximizing */
             <motion.div
               key="active-job-card"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 30 }}
-              className="bg-surface-elevated/98 backdrop-blur-xl border border-border border-l-4 border-l-primary rounded-2xl p-3 sm:p-4 shadow-2xl space-y-2.5 transition-all"
+              className="bg-surface-elevated/98 backdrop-blur-xl border border-border border-l-4 border-l-primary rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 shadow-xl space-y-1 transition-all"
             >
-              {/* Collapse/Expand Drag Handle */}
+              {/* Collapse/Expand Minimal Drag Handle Bar */}
               <button
                 type="button"
                 onClick={() => setIsCardCollapsed((prev) => !prev)}
-                className="w-full flex flex-col items-center pb-1 cursor-pointer focus:outline-none"
+                className="w-full flex items-center justify-center py-0.5 cursor-pointer focus:outline-none group"
                 aria-label={isCardCollapsed ? 'Expand route details' : 'Collapse route details'}
               >
-                <span className="w-8 h-1 bg-slate-300 rounded-full mb-1" />
-                <span className="text-[9px] font-mono text-text-dim uppercase tracking-wider flex items-center gap-1 font-semibold">
-                  <span className="material-symbols-outlined text-[13px]">
-                    {isCardCollapsed ? 'expand_less' : 'expand_more'}
-                  </span>
-                  <span>{isCardCollapsed ? 'Tap to Expand Route Details' : 'Tap to Minimize to Map'}</span>
-                </span>
+                <span className="w-7 h-0.5 bg-slate-300 rounded-full transition-colors group-hover:bg-slate-400" />
               </button>
 
               {/* Waybill Summary Header Row */}
               <div
-                className="flex items-center justify-between gap-2 border-b border-border pb-2 cursor-pointer"
+                className="flex items-center justify-between gap-1.5 cursor-pointer select-none"
                 onClick={() => setIsCardCollapsed((prev) => !prev)}
               >
                 {/* Left: Waybill Identifier Badge + Route ETA */}
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 text-[10.5px] font-black uppercase tracking-wider font-mono">
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 text-[9.5px] font-black uppercase tracking-wider font-mono whitespace-nowrap">
                       FX-{currentJob.id.substring(0, 8).toUpperCase()}
                     </span>
-                    <span className={`px-1.5 py-0.5 border text-[8.5px] font-bold uppercase tracking-wider font-mono rounded ${
+                    <span className={`px-1 py-0.2 border text-[8px] font-bold uppercase tracking-wider font-mono rounded whitespace-nowrap ${
                       !isPickedUp
                         ? 'bg-amber-500/10 text-amber-700 border-amber-500/30'
                         : 'bg-blue-500/10 text-blue-700 border-blue-500/30'
                     }`}>
-                      {!isPickedUp ? 'STAGE 1: PICKUP' : 'STAGE 2: IN TRANSIT'}
+                      {!isPickedUp ? 'PICKUP' : 'IN TRANSIT'}
+                    </span>
+                    <span className="material-symbols-outlined text-[13px] text-text-dim">
+                      {isCardCollapsed ? 'expand_less' : 'expand_more'}
                     </span>
                   </div>
-                  <div className="text-[10px] text-text-muted flex items-center gap-1 mt-1 font-mono truncate">
-                    <span className="material-symbols-outlined text-xs text-primary shrink-0" aria-hidden="true">
+                  <div className="text-[9px] text-text-muted flex items-center gap-0.5 mt-0.5 font-mono truncate leading-tight">
+                    <span className="material-symbols-outlined text-[11px] text-primary shrink-0" aria-hidden="true">
                       {!isPickedUp ? 'location_on' : 'flag'}
                     </span>
                     <span className="truncate">
                       {!isPickedUp
-                        ? `Pickup: ${currentJob.pickup_address?.split(',')[0] || 'Origin'}${distances ? ` • ${distances.toPickupKm}km (~${distances.toPickupEta}m)` : ''}`
-                        : `Dropoff: ${currentJob.dropoff_address?.split(',')[0] || 'Destination'}${distances ? ` • ${distances.toDropoffKm}km (~${distances.toDropoffEta}m)` : ''}`}
+                        ? `${currentJob.pickup_address?.split(',')[0] || 'Origin'}${distances ? ` • ${distances.toPickupKm}km (~${distances.toPickupEta}m)` : ''}`
+                        : `${currentJob.dropoff_address?.split(',')[0] || 'Destination'}${distances ? ` • ${distances.toDropoffKm}km (~${distances.toDropoffEta}m)` : ''}`}
                     </span>
                   </div>
                 </div>
 
-                {/* Right: Payout Badge, Radio & Collapsed 1-Tap GPS */}
-                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                  <div className="text-right">
-                    <span className="text-[8.5px] uppercase font-bold text-text-dim block font-mono">Payout</span>
-                    <span className="text-xs sm:text-sm font-black text-emerald-600 font-mono">
+                {/* Right: Payout Badge & Collapsed Quick Map / GPS Actions */}
+                <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                  <div className="text-right pr-0.5">
+                    <span className="text-[7.5px] uppercase font-bold text-text-dim block font-mono leading-none">Payout</span>
+                    <span className="text-[11px] sm:text-xs font-black text-emerald-600 font-mono leading-tight">
                       ₦{Math.round((Number(currentJob.total_amount) || 0) * 0.7).toLocaleString('en-NG')}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (typeof window !== 'undefined') {
-                        window.dispatchEvent(new CustomEvent('fastx:open_dispatch_radio'));
-                      }
-                    }}
-                    className="p-1 sm:px-2 sm:py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 border border-emerald-500/30 rounded text-[9px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-colors cursor-pointer"
-                    title="Dispatch Radio Tower"
-                  >
-                    <span className="material-symbols-outlined text-sm text-emerald-600">radio</span>
-                    <span className="hidden sm:inline">Radio</span>
-                  </button>
                   {isCardCollapsed && (
                     <>
                       <button
@@ -657,11 +638,11 @@ export function RiderRouteMap() {
                             window.dispatchEvent(new CustomEvent('fastx:map:focus_dropoff'));
                           }
                         }}
-                        className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded text-[9px] font-mono font-bold uppercase tracking-wider flex items-center gap-0.5 shadow-xs transition-colors cursor-pointer"
+                        className="px-1.5 py-0.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded text-[8px] font-mono font-bold uppercase tracking-wider flex items-center gap-0.5 cursor-pointer transition-colors"
                         title="Focus Dropoff on map"
                       >
-                        <span className="material-symbols-outlined text-[12px]">flag</span>
-                        <span>Dropoff</span>
+                        <span className="material-symbols-outlined text-[10px]">flag</span>
+                        <span>Drop</span>
                       </button>
                       <button
                         type="button"
@@ -669,10 +650,10 @@ export function RiderRouteMap() {
                           e.stopPropagation();
                           handleOpenGoogleMaps();
                         }}
-                        className="px-2 py-1 bg-primary hover:bg-primary-hover text-white rounded text-[9px] font-mono font-bold uppercase tracking-wider flex items-center gap-0.5 shadow-xs transition-colors cursor-pointer"
+                        className="px-1.5 py-0.5 bg-primary hover:bg-primary-hover text-white rounded text-[8px] font-mono font-bold uppercase tracking-wider flex items-center gap-0.5 cursor-pointer transition-colors"
                         title="Open Google Maps GPS"
                       >
-                        <span className="material-symbols-outlined text-[12px]">directions</span>
+                        <span className="material-symbols-outlined text-[10px]">directions</span>
                         <span>GPS</span>
                       </button>
                     </>

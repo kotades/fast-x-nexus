@@ -205,9 +205,11 @@ export function RiderDispatchChat({ riderId, orderId, defaultOpen = false }: Rid
       )}
 
       <div
-        className={`fixed bottom-20 right-3.5 sm:bottom-6 sm:right-6 ${
-          isOpen ? 'z-[90] bottom-3 right-3' : 'z-[35]'
-        } flex flex-col items-end gap-2 sm:gap-3 pointer-events-auto`}
+        className={`fixed ${
+          isOpen
+            ? 'z-[90] bottom-2 right-2 sm:bottom-4 sm:right-4'
+            : 'z-[45] bottom-2.5 right-2.5 sm:bottom-4 sm:right-4'
+        } flex flex-col items-end gap-2 pointer-events-auto`}
       >
         {/* Radio Comms Drawer */}
         <AnimatePresence>
@@ -381,28 +383,31 @@ export function RiderDispatchChat({ riderId, orderId, defaultOpen = false }: Rid
         )}
       </AnimatePresence>
 
-      {/* Floating Radio Transceiver Trigger */}
+      {/* Floating Comms / Dispatch Chat Trigger */}
       <motion.button
-        whileHover={{ scale: 1.06 }}
-        whileTap={{ scale: 0.94 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`relative w-14 h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-[0_10px_25px_rgba(22,163,74,0.4)] ${isOpen ? 'hidden sm:flex' : 'flex'} items-center justify-center cursor-pointer border-2 border-emerald-400/40 transition-all`}
-        aria-label="Toggle Dispatch Radio"
+        className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300/90 shadow-md ${
+          isOpen ? 'hidden sm:flex' : 'flex'
+        } items-center justify-center cursor-pointer transition-all active:scale-95`}
+        aria-label="Toggle Dispatch Chat"
+        title="Fleet Comms / Dispatch Chat"
       >
-        <span className="material-symbols-outlined text-2xl text-white">
-          {isOpen ? 'radio_button_checked' : 'radio'}
+        <span className="material-symbols-outlined text-base sm:text-lg text-emerald-600">
+          {isOpen ? 'close' : 'forum'}
         </span>
 
-        {/* Unread Alert */}
+        {/* Unread Alert Badge */}
         {unreadCount > 0 && !isOpen && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 bg-red-600 text-white text-[10px] font-black font-mono rounded-full flex items-center justify-center border-2 border-surface shadow-md">
+          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-600 text-white text-[8px] font-black font-mono rounded-full flex items-center justify-center border border-white shadow-xs">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
 
-        {/* Tactical Pulse */}
+        {/* Tactical Pulse on Unread */}
         {!isOpen && unreadCount > 0 && (
-          <span className="absolute inset-0 rounded-2xl border-2 border-emerald-400 animate-ping opacity-75 pointer-events-none" />
+          <span className="absolute inset-0 rounded-xl border-2 border-red-500 animate-ping opacity-60 pointer-events-none" />
         )}
       </motion.button>
     </div>

@@ -240,11 +240,11 @@ function MapBoundsUpdater({
   return (
     <div
       className={`leaflet-top leaflet-right ${
-        hasTopNavLauncher ? 'mt-3 sm:mt-[68px]' : 'mt-3'
-      } mr-3 sm:mr-4`}
+        hasTopNavLauncher ? 'mt-2.5 sm:mt-[60px]' : 'mt-2.5'
+      } mr-2.5 sm:mr-4`}
       style={{ pointerEvents: 'auto', zIndex: 999 }}
     >
-      <div className="flex flex-col items-end gap-1.5">
+      <div className="flex flex-col items-end gap-1">
         {isUserInteracting && (
           <button
             type="button"
@@ -263,16 +263,16 @@ function MapBoundsUpdater({
                 }, 600);
               }
             }}
-            className="bg-white/95 hover:bg-white text-slate-800 border border-slate-300 shadow-md px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            className="bg-white/95 hover:bg-white text-slate-800 border border-slate-300 shadow-xs px-2 py-0.5 rounded-md text-[8.5px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 transition-all hover:scale-105 active:scale-95 cursor-pointer"
             title="Re-fit route overview"
           >
-            <span className="material-symbols-outlined text-xs text-emerald-600">center_focus_strong</span>
-            <span>Re-center Route</span>
+            <span className="material-symbols-outlined text-[11px] text-emerald-600">center_focus_strong</span>
+            <span>Re-center</span>
           </button>
         )}
 
-        {/* Quick Location Pills */}
-        <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-lg p-1 shadow-sm">
+        {/* Quick Location Pills - Compact & Low Profile */}
+        <div className="flex items-center gap-0.5 bg-white/95 backdrop-blur-sm border border-slate-200/90 rounded-md p-0.5 shadow-xs">
           {dropoffLatLng && (
             <button
               type="button"
@@ -283,11 +283,11 @@ function MapBoundsUpdater({
                   isProgrammaticMoveRef.current = false;
                 }, 900);
               }}
-              className="px-2 py-0.5 bg-red-50 hover:bg-red-100 text-red-700 rounded text-[9px] font-mono font-bold uppercase flex items-center gap-0.5 cursor-pointer transition-colors"
+              className="px-1.5 py-0.5 bg-red-50 hover:bg-red-100 text-red-700 rounded text-[8px] font-mono font-bold uppercase flex items-center gap-0.5 cursor-pointer transition-colors"
               title="Focus Dropoff Destination"
             >
-              <span className="material-symbols-outlined text-[11px]">flag</span>
-              <span>Dropoff</span>
+              <span className="material-symbols-outlined text-[10px]">flag</span>
+              <span className="hidden xs:inline">Drop</span>
             </button>
           )}
 
@@ -301,11 +301,11 @@ function MapBoundsUpdater({
                   isProgrammaticMoveRef.current = false;
                 }, 900);
               }}
-              className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded text-[9px] font-mono font-bold uppercase flex items-center gap-0.5 cursor-pointer transition-colors"
+              className="px-1.5 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded text-[8px] font-mono font-bold uppercase flex items-center gap-0.5 cursor-pointer transition-colors"
               title="Focus Pickup Origin"
             >
-              <span className="material-symbols-outlined text-[11px]">inventory_2</span>
-              <span>Pickup</span>
+              <span className="material-symbols-outlined text-[10px]">inventory_2</span>
+              <span className="hidden xs:inline">Pick</span>
             </button>
           )}
 
@@ -319,11 +319,11 @@ function MapBoundsUpdater({
                   isProgrammaticMoveRef.current = false;
                 }, 900);
               }}
-              className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[9px] font-mono font-bold uppercase flex items-center gap-0.5 cursor-pointer transition-colors"
+              className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[8px] font-mono font-bold uppercase flex items-center gap-0.5 cursor-pointer transition-colors"
               title="Focus Courier Location"
             >
-              <span className="material-symbols-outlined text-[11px]">my_location</span>
-              <span>Me</span>
+              <span className="material-symbols-outlined text-[10px]">my_location</span>
+              <span className="hidden xs:inline">Me</span>
             </button>
           )}
         </div>
