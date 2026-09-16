@@ -19,6 +19,7 @@ import { getActiveRiderJobs } from '@/app/actions/rider';
 import { useCustomerDashboardSafe } from '@/components/customer/contexts/CustomerDashboardContext';
 import { useRiderDashboardSafe } from '@/components/rider/contexts/RiderDashboardContext';
 import { Logo } from '@/components/ui/Logo';
+import Image from 'next/image';
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -213,90 +214,120 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
   return (
     <header
-      className="bg-surface-elevated/90 backdrop-blur-xl sticky top-0 w-full h-16 shrink-0 flex justify-between items-center px-3 sm:px-4 md:px-6 z-30 border-b border-border/50 shadow-[0_2px_16px_rgba(0,0,0,0.02)] gap-2 sm:gap-4 max-w-full overflow-hidden"
-      style={{ contentVisibility: 'auto' }}
+      className="sticky top-0 w-full shrink-0 z-30 px-2.5 pt-2 pb-1 sm:px-4 sm:pt-2.5 sm:pb-1.5 pointer-events-none"
     >
-      {/* Left: Mobile Menu Button & Brand + Breadcrumb Title */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        <button 
-          className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-text hover:bg-surface-dim transition-colors cursor-pointer"
-          onClick={onMenuToggle}
-          aria-label="Toggle Menu"
-        >
-          <span className="material-symbols-outlined">menu</span>
-        </button>
-        <Logo width="w-24 sm:w-28 md:w-36" height="h-7 sm:h-8" />
+      <div className="max-w-6xl mx-auto h-12 sm:h-13 rounded-full bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_4px_20px_rgba(0,0,0,0.06)] px-2.5 sm:px-4 flex items-center justify-between pointer-events-auto transition-all">
+        {/* Left: 3D Animated F Logo / Menu Toggle & Brand Title */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+          {/* 3D Interactive F Button (Functions as Animated Hamburger on Mobile & Interactive Emblem on Desktop) */}
+          <motion.button
+            onClick={onMenuToggle}
+            whileHover={{ 
+              scale: 1.08,
+              rotateY: -18,
+              rotateX: 10,
+            }}
+            whileTap={{ 
+              scale: 0.92,
+              rotateY: 90,
+            }}
+            transition={{ 
+              type: 'spring', 
+              stiffness: 400, 
+              damping: 18 
+            }}
+            className="relative flex items-center justify-center cursor-pointer group focus:outline-none shrink-0"
+            style={{ perspective: 800, transformStyle: 'preserve-3d' }}
+            aria-label="Toggle navigation menu"
+            title="Toggle Fast X Menu"
+          >
+            {/* 3D Tactile Container */}
+            <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-gradient-to-b from-white via-slate-50 to-emerald-50/60 border border-emerald-500/30 shadow-[0_3px_8px_rgba(46,125,50,0.18),inset_0_1px_1px_rgba(255,255,255,0.9)] transition-all group-hover:border-emerald-500/60 group-hover:shadow-[0_4px_14px_rgba(46,125,50,0.28)]">
+              <Image
+                src="/images/fast-x-f-icon.png"
+                alt="Fast X Navigation"
+                width={22}
+                height={22}
+                className="object-contain filter drop-shadow-[0_2px_3px_rgba(46,125,50,0.4)] pointer-events-none select-none transition-transform duration-200 group-hover:scale-105"
+                priority
+              />
+              {/* Subtle Menu Dot Indicator on Mobile */}
+              <span className="md:hidden absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white" />
+            </div>
+          </motion.button>
 
-        {displayTitle && (
-          <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-border/60">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={displayTitle}
-                initial={{ opacity: 0, x: -5 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 5 }}
-                transition={{ duration: 0.2 }}
-                className="text-xs font-bold uppercase tracking-[0.15em] text-primary font-sans whitespace-nowrap"
-              >
-                {displayTitle}
-              </motion.span>
-            </AnimatePresence>
+          {/* Brand & Breadcrumb Title (Image 4 Inspiration: BRAND • SECTION) */}
+          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+            {/* Mobile: Just "FAST X" */}
+            <span className="sm:hidden font-black text-xs tracking-wider text-slate-800 font-sans whitespace-nowrap">
+              FAST X
+            </span>
+            {/* Desktop: Full Wordmark */}
+            <span className="hidden sm:inline font-black text-sm tracking-wider text-slate-800 font-sans whitespace-nowrap">
+              FAST X <span className="text-emerald-600 font-black">NEXUS</span>
+            </span>
+
+            {displayTitle && (
+              <>
+                <span className="text-slate-300 text-xs font-bold select-none shrink-0">•</span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={displayTitle}
+                    initial={{ opacity: 0, x: -4 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 4 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-[9.5px] sm:text-[11px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.15em] text-emerald-700 font-mono truncate"
+                  >
+                    {displayTitle}
+                  </motion.span>
+                </AnimatePresence>
+              </>
+            )}
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Right Side Actions & Dynamic Realtime Status */}
-      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 shrink min-w-0 justify-end">
-        {/* Dynamic Realtime Logistics Status Badge */}
-        {statusBadge && (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={statusBadge.text}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className={`border px-2 sm:px-2.5 md:px-3 py-1 flex items-center gap-1.5 sm:gap-2 select-none font-mono shrink-0 rounded ${statusBadge.bgColor}`}
-            >
-              <span className="relative flex h-2 w-2 shrink-0">
-                <motion.span
-                  animate={{ opacity: [1, 0.4, 1] }}
-                  transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                  className={`absolute inline-flex h-full w-full rounded-full ${statusBadge.dotColor} opacity-75`}
-                />
-                <span className={`relative inline-flex rounded-full h-2 w-2 ${statusBadge.dotColor}`} />
-              </span>
-              <span className="text-[9.5px] sm:text-[10px] uppercase font-black tracking-wider md:tracking-widest font-mono whitespace-nowrap">
-                <span className="sm:hidden">{statusBadge.shortText || statusBadge.text}</span>
-                <span className="hidden sm:inline">{statusBadge.text}</span>
-              </span>
-            </motion.div>
-          </AnimatePresence>
-        )}
+        {/* Right Side: Realtime Status Badge & Sign Out */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Dynamic Realtime Logistics Status Badge */}
+          {statusBadge && (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={statusBadge.text}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className={`border px-2 sm:px-2.5 py-0.5 sm:py-1 flex items-center gap-1.5 select-none font-mono shrink-0 rounded-full ${statusBadge.bgColor}`}
+              >
+                <span className="relative flex h-1.5 w-1.5 shrink-0">
+                  <motion.span
+                    animate={{ opacity: [1, 0.4, 1] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                    className={`absolute inline-flex h-full w-full rounded-full ${statusBadge.dotColor} opacity-75`}
+                  />
+                  <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${statusBadge.dotColor}`} />
+                </span>
+                <span className="text-[9px] sm:text-[9.5px] uppercase font-black tracking-wider font-mono whitespace-nowrap">
+                  <span className="sm:hidden">{statusBadge.shortText || statusBadge.text}</span>
+                  <span className="hidden sm:inline">{statusBadge.text}</span>
+                </span>
+              </motion.div>
+            </AnimatePresence>
+          )}
 
-        <a
-          href="/about"
-          className="hidden xl:inline-flex items-center min-h-[44px] text-[10px] font-bold uppercase tracking-widest text-text-muted hover:text-primary transition-colors duration-[var(--duration-200)] whitespace-nowrap font-sans"
-          style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
-        >
-          Documentation
-        </a>
-        <button
-          onClick={handleLogout}
-          className="min-h-[38px] min-w-[38px] sm:min-h-[40px] px-2 sm:px-3 py-1 text-text-muted hover:text-error border border-border/80 hover:border-error/40 hover:bg-error-bg/60 transition-all duration-[var(--duration-200)] cursor-pointer whitespace-nowrap flex items-center justify-center gap-1.5 font-sans rounded-md select-none group shadow-xs"
-          style={{
-            transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
-          }}
-          aria-label="Sign Out of Session"
-          title="Sign Out of Session"
-        >
-          <span className="material-symbols-outlined text-[18px] transition-transform duration-200 group-hover:translate-x-0.5">
-            logout
-          </span>
-          <span className="text-[11px] font-bold uppercase tracking-wider hidden sm:inline">
-            Sign Out
-          </span>
-        </button>
+          {/* Sleek Rounded Sign Out Action */}
+          <button
+            onClick={handleLogout}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200/80 hover:border-red-200 flex items-center justify-center transition-colors cursor-pointer shadow-xs select-none group focus:outline-none"
+            aria-label="Sign Out of Session"
+            title="Sign Out"
+          >
+            <span className="material-symbols-outlined text-base transition-transform duration-200 group-hover:translate-x-0.5">
+              logout
+            </span>
+          </button>
+        </div>
       </div>
     </header>
   );

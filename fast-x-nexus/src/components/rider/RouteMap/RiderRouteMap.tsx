@@ -323,7 +323,7 @@ export function RiderRouteMap() {
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-64px)] overflow-hidden font-mono flex flex-col">
+    <div className="relative w-full flex-1 min-h-0 h-full overflow-hidden font-mono flex flex-col">
       {/* Map Layer: Fully interactive with manual zoom preservation and dropoff waypoint visibility */}
       <div className="absolute inset-0 z-0">
         <DynamicMap
@@ -603,9 +603,6 @@ export function RiderRouteMap() {
                         : 'bg-blue-500/10 text-blue-700 border-blue-500/30'
                     }`}>
                       {!isPickedUp ? 'PICKUP' : 'IN TRANSIT'}
-                    </span>
-                    <span className="material-symbols-outlined text-[13px] text-text-dim">
-                      {isCardCollapsed ? 'expand_less' : 'expand_more'}
                     </span>
                   </div>
                   <div className="text-[9px] text-text-muted flex items-center gap-0.5 mt-0.5 font-mono truncate leading-tight">
