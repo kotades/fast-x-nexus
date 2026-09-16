@@ -340,6 +340,7 @@ export function RiderRouteMap() {
           isEstimatedDropoff={dropoffResolution?.isEstimatedVicinity}
           pickupRadius={pickupResolution?.accuracyRadius}
           dropoffRadius={dropoffResolution?.accuracyRadius}
+          hasTopNavLauncher={Boolean(currentJob)}
         />
       </div>
 

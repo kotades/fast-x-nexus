@@ -105,6 +105,7 @@ interface MapBoundsUpdaterProps {
   dropoffLatLng: [number, number] | null;
   riderLatLng: [number, number] | null;
   jobId?: string;
+  hasTopNavLauncher?: boolean;
 }
 
 function MapBoundsUpdater({
@@ -113,6 +114,7 @@ function MapBoundsUpdater({
   dropoffLatLng,
   riderLatLng,
   jobId,
+  hasTopNavLauncher = false,
 }: MapBoundsUpdaterProps) {
   const map = useMap();
   const [isUserInteracting, setIsUserInteracting] = React.useState(false);
@@ -237,8 +239,10 @@ function MapBoundsUpdater({
 
   return (
     <div
-      className="leaflet-top leaflet-right"
-      style={{ pointerEvents: 'auto', marginTop: '12px', marginRight: '12px', zIndex: 999 }}
+      className={`leaflet-top leaflet-right ${
+        hasTopNavLauncher ? 'mt-3 sm:mt-[68px]' : 'mt-3'
+      } mr-3 sm:mr-4`}
+      style={{ pointerEvents: 'auto', zIndex: 999 }}
     >
       <div className="flex flex-col items-end gap-1.5">
         {isUserInteracting && (
@@ -370,6 +374,7 @@ export default function Map({
   isEstimatedVicinity = false,
   isEstimatedPickup,
   isEstimatedDropoff = false,
+  hasTopNavLauncher = false,
   filters = { showRiders: true, showHubs: true, showPickups: true },
 }: DynamicMapProps) {
   const pickupEstimated = isEstimatedPickup !== undefined ? isEstimatedPickup : isEstimatedVicinity;
@@ -470,6 +475,7 @@ export default function Map({
             dropoffLatLng={dropoffLatLng}
             riderLatLng={riderLatLng}
             jobId={jobId}
+            hasTopNavLauncher={hasTopNavLauncher}
           />
         )}
 

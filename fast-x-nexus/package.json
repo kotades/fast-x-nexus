@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --webpack -p 4004",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 4004",
     "lint": "eslint",
     "lint:geo": "node scripts/lint-spatial-data.js",
     "test:geo": "tsx scripts/benchmark-geo-suite.js",

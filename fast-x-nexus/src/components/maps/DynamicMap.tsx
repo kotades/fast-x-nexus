@@ -37,6 +37,7 @@ export interface DynamicMapProps {
   isEstimatedVicinity?: boolean;
   isEstimatedPickup?: boolean;
   isEstimatedDropoff?: boolean;
+  hasTopNavLauncher?: boolean;
   filters?: {
     showRiders: boolean;
     showHubs: boolean;
