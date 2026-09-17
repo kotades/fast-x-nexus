@@ -61,14 +61,10 @@ export function LandingHeader() {
   }, [isMobileMenuOpen]);
 
   const navLinks = [
-    { label: 'About', href: '/about', icon: 'corporate_fare', showOnDesktop: 'always' },
-    { label: 'Booking', href: '/booking', icon: 'local_shipping', showOnDesktop: 'always' },
-    { label: 'Tracking', href: '/tracking', icon: 'radar', showOnDesktop: 'always' },
-    { label: 'Drive & Earn', href: '/onboarding/rider', icon: 'two_wheeler', showOnDesktop: 'lg' },
-    { label: 'Fleet', href: '/fleet', icon: 'grid_view', showOnDesktop: 'xl' },
-    { label: 'Network', href: '/network', icon: 'hub', showOnDesktop: 'xl' },
-    { label: 'Solutions', href: '/solutions', icon: 'dataset', showOnDesktop: 'xl' },
-    { label: 'Contact', href: '/contact', icon: 'support_agent', showOnDesktop: 'always' },
+    { label: 'About', href: '/about', icon: 'corporate_fare' },
+    { label: 'Booking', href: '/booking', icon: 'local_shipping' },
+    { label: 'Drive & Earn', href: '/onboarding/rider', icon: 'two_wheeler' },
+    { label: 'Contact', href: '/contact', icon: 'support_agent' },
   ];
 
   const getDashboardHref = () => {
@@ -106,21 +102,14 @@ export function LandingHeader() {
           </div>
 
           {/* Center: Desktop Navigation Pills */}
-          <nav className="hidden md:flex items-center gap-1 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
+          <nav className="hidden md:flex items-center gap-1.5 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
             {navLinks.map((item) => {
               const isActive = pathname === item.href;
-              const visibilityClass =
-                item.showOnDesktop === 'always'
-                  ? 'inline-flex'
-                  : item.showOnDesktop === 'lg'
-                  ? 'hidden lg:inline-flex'
-                  : 'hidden xl:inline-flex';
-
               return (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className={`${visibilityClass} items-center text-[10.5px] lg:text-[11px] font-bold uppercase tracking-wider px-2.5 lg:px-3 py-1 rounded-full transition-all duration-150 whitespace-nowrap ${
+                  className={`inline-flex items-center text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full transition-all duration-150 whitespace-nowrap ${
                     isActive
                       ? 'bg-emerald-700 text-white shadow-xs'
                       : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100/90'
@@ -152,7 +141,7 @@ export function LandingHeader() {
               </Link>
             )}
 
-            {/* Mobile Hamburger Toggle Button (Screen < md) */}
+            {/* Mobile Hamburger / Close Toggle Button (Screen < md) */}
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -190,26 +179,18 @@ export function LandingHeader() {
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
               className="fixed top-14 sm:top-16 inset-x-2.5 sm:inset-x-4 max-w-md mx-auto bg-white/95 backdrop-blur-2xl border border-white/90 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.18)] z-50 overflow-hidden flex flex-col pointer-events-auto"
             >
-              {/* Drawer Brand & Close Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/70">
+              {/* Drawer Brand Header (No duplicate cancel button — top pill button serves as close) */}
+              <div className="flex items-center px-4 py-3 border-b border-slate-100 bg-slate-50/70">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
                   <p className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-emerald-800">
                     Logistics Navigation
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-slate-950 flex items-center justify-center transition-colors cursor-pointer"
-                  aria-label="Close menu"
-                >
-                  <span className="material-symbols-outlined text-[16px]">close</span>
-                </button>
               </div>
 
-              {/* Nav Links Grid */}
-              <div className="p-3 grid grid-cols-2 gap-1.5 max-h-[60vh] overflow-y-auto">
+              {/* Nav Links Grid (Clean 2x2 for the 4 core sections) */}
+              <div className="p-3 grid grid-cols-2 gap-2">
                 {navLinks.map((item) => {
                   const isActive = pathname === item.href;
                   return (
@@ -217,7 +198,7 @@ export function LandingHeader() {
                       key={item.label}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all min-h-[44px] ${
+                      className={`flex items-center gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all min-h-[46px] ${
                         isActive
                           ? 'bg-emerald-700 text-white shadow-xs'
                           : 'text-slate-800 hover:text-emerald-800 hover:bg-slate-100/90 active:bg-slate-200'

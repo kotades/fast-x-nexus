@@ -73,6 +73,7 @@ export function Footer() {
                   { label: 'Book Dispatch', href: '/booking' },
                   { label: 'Fleet Grid', href: '/fleet' },
                   { label: 'H3 Network Matrix', href: '/network' },
+                  { label: 'Developer Solutions & API', href: '/solutions' },
                 ].map((item) => (
                   <li key={item.label}>
                     <a
