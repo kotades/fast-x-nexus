@@ -145,7 +145,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             text: `MATCHING COURIER (FX-${activeJob.id.substring(0, 6).toUpperCase()})`,
             shortText: 'MATCHING',
             dotColor: 'bg-amber-500',
-            bgColor: 'bg-amber-500/15 border-amber-500/40 text-amber-800',
+            bgColor: 'bg-amber-50/90 border-amber-300 text-amber-900',
           };
         }
         if (activeJob.status === 'ASSIGNED') {
@@ -153,7 +153,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             text: `COURIER EN ROUTE (FX-${activeJob.id.substring(0, 6).toUpperCase()})`,
             shortText: 'EN ROUTE',
             dotColor: 'bg-amber-500',
-            bgColor: 'bg-amber-500/10 border-amber-500/30 text-amber-700',
+            bgColor: 'bg-amber-50/90 border-amber-300 text-amber-900',
           };
         }
         if (activeJob.status === 'PICKED_UP' || activeJob.status === 'IN_TRANSIT') {
@@ -161,7 +161,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             text: `IN TRANSIT TO DROPOFF (FX-${activeJob.id.substring(0, 6).toUpperCase()})`,
             shortText: 'IN TRANSIT',
             dotColor: 'bg-blue-500',
-            bgColor: 'bg-blue-500/10 border-blue-500/30 text-blue-700',
+            bgColor: 'bg-blue-50/90 border-blue-300 text-blue-900',
           };
         }
       }
@@ -177,7 +177,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             text: `EN ROUTE TO PICKUP (FX-${activeJob.id.substring(0, 6).toUpperCase()})`,
             shortText: 'PICKUP',
             dotColor: 'bg-amber-500',
-            bgColor: 'bg-amber-500/10 border-amber-500/30 text-amber-700',
+            bgColor: 'bg-amber-50/90 border-amber-300 text-amber-900',
           };
         }
         if (activeJob.status === 'PICKED_UP' || activeJob.status === 'IN_TRANSIT') {
@@ -185,7 +185,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             text: `IN TRANSIT TO DROPOFF (FX-${activeJob.id.substring(0, 6).toUpperCase()})`,
             shortText: 'IN TRANSIT',
             dotColor: 'bg-blue-500',
-            bgColor: 'bg-blue-500/10 border-blue-500/30 text-blue-700',
+            bgColor: 'bg-blue-50/90 border-blue-300 text-blue-900',
           };
         }
       }
@@ -195,7 +195,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           text: `${unassignedCount} POOL JOB${unassignedCount > 1 ? 'S' : ''} READY`,
           shortText: `${unassignedCount} READY`,
           dotColor: 'bg-amber-500',
-          bgColor: 'bg-amber-500/15 border-amber-500/40 text-amber-800',
+          bgColor: 'bg-amber-50/90 border-amber-300 text-amber-900',
         };
       }
 
@@ -203,7 +203,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
         text: 'FLEET ONLINE — STANDBY',
         shortText: 'ONLINE',
         dotColor: 'bg-emerald-500',
-        bgColor: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700',
+        bgColor: 'bg-emerald-50/90 border-emerald-300 text-emerald-900',
       };
     }
 
@@ -217,7 +217,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
     <header
       className="absolute top-0 left-0 right-0 w-full shrink-0 z-30 px-2.5 pt-2.5 sm:px-4 sm:pt-3 pointer-events-none"
     >
-      <div className="max-w-6xl mx-auto h-11 sm:h-12 rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-white/65 dark:border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] px-2.5 sm:px-4 flex items-center justify-between pointer-events-auto transition-all">
+      <div className="max-w-6xl mx-auto h-11 sm:h-12 rounded-full bg-white/85 backdrop-blur-2xl border border-white/90 shadow-[0_8px_30px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.05)] px-2.5 sm:px-4 flex items-center justify-between pointer-events-auto transition-all">
         {/* Left: 3D Animated F Logo / Menu Toggle & Brand Title */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
           {/* 3D Interactive Volumetric F Emblem (Animated Menu Trigger) */}
@@ -226,12 +226,12 @@ export function Header({ onMenuToggle }: HeaderProps) {
           {/* Brand & Breadcrumb Title (Image 4 Inspiration: BRAND • SECTION) */}
           <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
             {/* Mobile: Just "FAST X" */}
-            <span className="sm:hidden font-black text-xs tracking-wider text-slate-800 font-sans whitespace-nowrap">
+            <span className="sm:hidden font-black text-xs tracking-wider text-slate-950 font-sans whitespace-nowrap">
               FAST X
             </span>
             {/* Desktop: Full Wordmark */}
-            <span className="hidden sm:inline font-black text-sm tracking-wider text-slate-800 font-sans whitespace-nowrap">
-              FAST X <span className="text-emerald-600 font-black">NEXUS</span>
+            <span className="hidden sm:inline font-black text-sm tracking-wider text-slate-950 font-sans whitespace-nowrap">
+              FAST X <span className="text-emerald-700 font-black">NEXUS</span>
             </span>
 
             {displayTitle && (
@@ -244,7 +244,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 4 }}
                     transition={{ duration: 0.15 }}
-                    className="text-[9.5px] sm:text-[11px] font-bold uppercase tracking-[0.12em] sm:tracking-[0.15em] text-emerald-700 font-mono truncate"
+                    className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-[0.14em] text-emerald-800 font-mono truncate"
                   >
                     {displayTitle}
                   </motion.span>
@@ -265,7 +265,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className={`border px-2 sm:px-2.5 py-0.5 sm:py-1 flex items-center gap-1.5 select-none font-mono shrink-0 rounded-full ${statusBadge.bgColor}`}
+                className={`border px-2 sm:px-2.5 py-0.5 sm:py-1 flex items-center gap-1.5 select-none font-mono shrink-0 rounded-full shadow-2xs ${statusBadge.bgColor}`}
               >
                 <span className="relative flex h-1.5 w-1.5 shrink-0">
                   <motion.span
@@ -286,7 +286,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           {/* Sleek Rounded Sign Out Action */}
           <button
             onClick={handleLogout}
-            className="w-7.5 h-7.5 sm:w-8.5 sm:h-8.5 rounded-full bg-white/70 hover:bg-red-50/80 text-slate-500 hover:text-red-600 border border-white/80 hover:border-red-200/80 flex items-center justify-center transition-colors cursor-pointer shadow-xs select-none group focus:outline-none backdrop-blur-xs"
+            className="w-7.5 h-7.5 sm:w-8.5 sm:h-8.5 rounded-full bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200/90 flex items-center justify-center transition-colors cursor-pointer shadow-xs select-none group focus:outline-none"
             aria-label="Sign Out of Session"
             title="Sign Out"
           >
