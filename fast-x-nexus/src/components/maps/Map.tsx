@@ -240,7 +240,7 @@ function MapBoundsUpdater({
   return (
     <div
       className={`leaflet-top leaflet-right ${
-        hasTopNavLauncher ? 'mt-2.5 sm:mt-[60px]' : 'mt-2.5'
+        hasTopNavLauncher ? 'mt-16 sm:mt-24' : 'mt-16 sm:mt-18'
       } mr-2.5 sm:mr-4`}
       style={{ pointerEvents: 'auto', zIndex: 999 }}
     >
@@ -349,6 +349,9 @@ function MapZoomEventListener() {
 }
 
 const mobileZoomOverrideStyles = `
+  .leaflet-top.leaflet-left {
+    margin-top: 68px;
+  }
   @media (max-width: 639px) {
     .leaflet-top.leaflet-left {
       display: none !important;

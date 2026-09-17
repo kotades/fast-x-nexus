@@ -344,10 +344,10 @@ export function RiderRouteMap() {
         />
       </div>
 
-      {/* Mobile Ultra-Lean Floating ETA Pill (Top Left — Compact & Non-Interfering) */}
+      {/* Mobile Ultra-Lean Floating ETA Pill (Top Left — Compact & Non-Interfering below Floating Header) */}
       {currentJob && distances && (
-        <div className="sm:hidden absolute top-2.5 left-2.5 z-10 pointer-events-auto">
-          <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1.5 text-[9px] font-mono font-bold text-slate-800">
+        <div className="sm:hidden absolute top-16 left-2.5 z-10 pointer-events-auto">
+          <div className="bg-white/90 backdrop-blur-md border border-slate-200/80 px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1.5 text-[9px] font-mono font-bold text-slate-800">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             <span className="tracking-tight">
               {isPickedUp ? distances.toDropoffKm : distances.toPickupKm}km • ~{isPickedUp ? distances.toDropoffEta : distances.toPickupEta}m
@@ -356,8 +356,8 @@ export function RiderRouteMap() {
         </div>
       )}
 
-      {/* Floating Telemetry & Distance HUD (Top Left — Desktop only) */}
-      <div className="hidden sm:flex absolute top-4 left-4 z-10 flex-col gap-2 max-w-sm w-full pointer-events-auto">
+      {/* Floating Telemetry & Distance HUD (Top Left — Desktop only below Floating Header) */}
+      <div className="hidden sm:flex absolute top-18 left-4 z-10 flex-col gap-2 max-w-sm w-full pointer-events-auto">
         <div className="bg-surface-elevated/95 backdrop-blur-md border border-border border-l-4 border-l-primary p-3.5 shadow-xl text-xs space-y-2.5">
           <div className="flex items-center justify-between border-b border-border pb-1.5">
             <span className="text-[10px] font-black uppercase text-primary tracking-widest flex items-center gap-1.5">
@@ -537,9 +537,9 @@ export function RiderRouteMap() {
         </div>
       </div>
 
-      {/* Floating 1-Tap Navigation Launcher (Top Right — Desktop only) */}
+      {/* Floating 1-Tap Navigation Launcher (Top Right — Desktop only below Floating Header) */}
       {currentJob && (
-        <div className="hidden sm:block absolute top-4 right-4 z-10 pointer-events-auto">
+        <div className="hidden sm:block absolute top-18 right-4 z-10 pointer-events-auto">
           <button
             onClick={handleOpenGoogleMaps}
             className="px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-2xl cursor-pointer transition-all hover:scale-105 active:scale-95"

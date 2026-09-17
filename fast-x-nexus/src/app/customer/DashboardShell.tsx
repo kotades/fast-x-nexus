@@ -39,17 +39,17 @@ export function DashboardShell({ commandMap, bookingWizard, activityLedger, prof
         >
           {activeView === 'command_map' && commandMap}
           {activeView === 'booking_wizard' && (
-            <div className="flex-1 h-full overflow-hidden flex flex-col">
+            <div className="flex-1 h-full overflow-hidden flex flex-col pt-16 sm:pt-18">
               {bookingWizard}
             </div>
           )}
           {activeView === 'activity_ledger' && (
-            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 pt-16 sm:pt-18">
               {activityLedger}
             </div>
           )}
           {activeView === 'profile' && (
-            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 pt-16 sm:pt-18">
               {profile}
             </div>
           )}

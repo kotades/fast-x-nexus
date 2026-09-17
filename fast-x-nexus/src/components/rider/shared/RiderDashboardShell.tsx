@@ -29,7 +29,7 @@ export function RiderDashboardShell({ jobPool, activeJobs, routeMap, earnings, p
   const { activeView } = useRiderDashboard();
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-64px)]">
+    <div className="flex-1 flex flex-col h-full relative overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.div
           key={activeView}
@@ -38,13 +38,21 @@ export function RiderDashboardShell({ jobPool, activeJobs, routeMap, earnings, p
           animate="animate"
           exit="exit"
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="flex-1 overflow-y-auto"
+          className="flex-1 h-full overflow-hidden flex flex-col"
         >
-          {activeView === 'job_pool' && jobPool}
-          {activeView === 'active_jobs' && activeJobs}
           {activeView === 'route_map' && routeMap}
-          {activeView === 'earnings' && earnings}
-          {activeView === 'profile' && profile}
+          {activeView === 'job_pool' && (
+            <div className="flex-1 h-full overflow-y-auto pt-16 sm:pt-18">{jobPool}</div>
+          )}
+          {activeView === 'active_jobs' && (
+            <div className="flex-1 h-full overflow-y-auto pt-16 sm:pt-18">{activeJobs}</div>
+          )}
+          {activeView === 'earnings' && (
+            <div className="flex-1 h-full overflow-y-auto pt-16 sm:pt-18">{earnings}</div>
+          )}
+          {activeView === 'profile' && (
+            <div className="flex-1 h-full overflow-y-auto pt-16 sm:pt-18">{profile}</div>
+          )}
         </motion.div>
       </AnimatePresence>
     </div>

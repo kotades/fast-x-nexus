@@ -17,9 +17,9 @@ export function AdminDashboardLayout({ children }: { children: React.ReactNode }
     <VisibilityWrapper roles={['admin']}>
       <div className="flex h-screen overflow-hidden bg-surface">
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <div className="flex-1 flex flex-col md:ml-52 h-screen overflow-hidden min-w-0">
+        <div className="flex-1 flex flex-col md:ml-52 h-screen overflow-hidden min-w-0 relative">
           <Header onMenuToggle={() => setIsSidebarOpen(true)} />
-          <main className="flex-1 min-h-0 overflow-y-auto flex flex-col">
+          <main className="flex-1 min-h-0 h-full overflow-y-auto flex flex-col pt-16 sm:pt-18">
             {children}
           </main>
         </div>

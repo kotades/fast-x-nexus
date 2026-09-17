@@ -23,9 +23,9 @@ export function CustomerDashboardLayout({ children }: { children: React.ReactNod
       <CustomerDashboardProvider>
         <div className="flex h-screen overflow-hidden bg-[#F9FAFB]">
           <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-          <div className="flex-1 flex flex-col md:ml-52 h-screen overflow-hidden min-w-0">
+          <div className="flex-1 flex flex-col md:ml-52 h-screen overflow-hidden min-w-0 relative">
             <Header onMenuToggle={() => setIsSidebarOpen(true)} />
-            <main className="flex-1 min-h-0 overflow-y-auto flex flex-col">
+            <main className="flex-1 min-h-0 h-full overflow-hidden flex flex-col">
               {children}
             </main>
           </div>
