@@ -86,7 +86,7 @@ export default function RiderOnboardingPage() {
     <div className="flex flex-col min-h-screen bg-[var(--color-surface)]">
       <LandingHeader />
 
-      <main className="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden bg-[var(--color-surface)] text-[var(--color-text)] py-12 lg:py-20 px-4">
+      <main className="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden bg-[var(--color-surface)] text-[var(--color-text)] pt-20 sm:pt-24 pb-12 lg:pb-20 px-4">
 
         <div className="max-w-2xl w-full mx-auto relative z-10">
           <GlassCard className="p-6 md:p-8 border-l-4 border-l-[var(--color-primary)] bg-[var(--color-surface-elevated)] !text-[var(--color-text)] shadow-2xl font-mono">

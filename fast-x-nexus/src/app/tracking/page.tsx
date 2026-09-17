@@ -104,7 +104,7 @@ export default function TrackingPage() {
     <div className="flex flex-col min-h-screen bg-[var(--color-surface)] text-[var(--color-text)]">
       <LandingHeader />
 
-      <main className="flex-grow max-w-7xl mx-auto px-6 py-12 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="flex-grow max-w-7xl mx-auto px-6 pt-20 sm:pt-24 pb-12 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Left Column: Search & Status Indicators */}
         <div className="space-y-6 lg:col-span-1">

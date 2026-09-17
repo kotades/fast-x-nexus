@@ -102,7 +102,7 @@ export default function AdminLoginPage() {
     <div className="flex flex-col min-h-screen bg-[#F8FAFC] text-[#0F172A]">
       <LandingHeader />
 
-      <main className="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden py-12 lg:py-20 px-4">
+      <main className="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden pt-20 sm:pt-24 pb-12 lg:pb-20 px-4">
         {/* Subtle background industrial grid */}
         <div
           className="absolute inset-0 opacity-40 pointer-events-none"

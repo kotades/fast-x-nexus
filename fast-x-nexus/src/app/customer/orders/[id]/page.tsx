@@ -248,7 +248,7 @@ export default function OrderDetailsPage() {
     return (
       <div className="flex flex-col min-h-screen bg-surface text-text font-sans">
         <Header />
-        <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-12 flex items-center justify-center">
+        <main className="flex-1 max-w-6xl mx-auto w-full px-4 pt-20 sm:pt-24 pb-12 flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 font-mono">
             <span className="relative flex h-4 w-4">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
@@ -268,7 +268,7 @@ export default function OrderDetailsPage() {
     return (
       <div className="flex flex-col min-h-screen bg-surface text-text font-sans">
         <Header />
-        <main className="flex-1 max-w-xl mx-auto w-full px-4 py-16 text-center font-mono">
+        <main className="flex-1 max-w-xl mx-auto w-full px-4 pt-20 sm:pt-24 pb-16 text-center font-mono">
           <div className="bg-surface-elevated border border-border p-8 border-l-4 border-l-red-500 shadow-xl space-y-4">
             <span className="material-symbols-outlined text-4xl text-red-500">warning</span>
             <h1 className="text-lg font-black uppercase tracking-tight">Booking Not Found</h1>
@@ -294,7 +294,7 @@ export default function OrderDetailsPage() {
     <div className="flex flex-col min-h-screen bg-surface text-text font-sans">
       <Header />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 pt-18 sm:pt-22 pb-8 sm:pb-12 space-y-6">
         {/* Top Breadcrumb & Actions Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4 font-mono">
           <div className="flex items-center gap-2">

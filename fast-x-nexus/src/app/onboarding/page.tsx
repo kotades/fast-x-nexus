@@ -64,7 +64,7 @@ export default function OnboardingPage() {
 
       <main 
         ref={ref}
-        className="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden bg-[var(--color-surface)] text-[var(--color-text)] py-16 lg:py-24"
+        className="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden bg-[var(--color-surface)] text-[var(--color-text)] pt-20 sm:pt-24 pb-16 lg:pb-24"
       >
 
         <div className="max-w-md w-full mx-auto relative z-10 px-4">

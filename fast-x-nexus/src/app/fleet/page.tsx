@@ -54,7 +54,7 @@ export default function FleetPage() {
     <div className="flex flex-col min-h-screen bg-[var(--color-surface)] text-[var(--color-text)]">
       <LandingHeader />
 
-      <main className="flex-grow max-w-7xl mx-auto px-6 py-12 w-full space-y-12">
+      <main className="flex-grow max-w-7xl mx-auto px-6 pt-20 sm:pt-24 pb-12 w-full space-y-12">
         {/* Header Hero */}
         <div>
           <p className="text-[10px] font-mono font-black uppercase tracking-[0.25em] text-[var(--color-text-dim)] mb-2">

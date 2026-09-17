@@ -9,7 +9,7 @@ export default function TermsPage() {
     <div className="flex flex-col min-h-screen bg-[var(--color-surface)] text-[var(--color-text)]">
       <LandingHeader />
 
-      <main className="flex-1 max-w-4xl mx-auto px-6 lg:px-8 py-16 w-full font-sans">
+      <main className="flex-1 max-w-4xl mx-auto px-6 lg:px-8 pt-20 sm:pt-24 pb-16 w-full font-sans">
         <div className="mb-10 border-b border-[var(--color-border)] pb-6">
           <p className="text-xs font-mono font-bold uppercase tracking-widest text-[var(--color-primary)] mb-2">
             LEGAL ARCHITECTURE

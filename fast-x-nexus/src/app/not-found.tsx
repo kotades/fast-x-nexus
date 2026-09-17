@@ -40,7 +40,7 @@ export default function NotFound() {
     <div className="flex flex-col min-h-screen bg-[var(--color-surface)] text-[var(--color-text)]">
       <LandingHeader />
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-16 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 pt-20 sm:pt-24 pb-16 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full">
         {/* Status Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-error/10 border border-error/30 text-error text-xs font-mono font-bold uppercase tracking-widest mb-6">
           <span className="material-symbols-outlined text-sm" aria-hidden="true">warning</span>

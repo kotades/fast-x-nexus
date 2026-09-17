@@ -1,19 +1,52 @@
 'use client';
 
 /**
- * LandingHeader — Public-facing navigation for the landing page.
- * Logo height fills the header, width covers 17% of header.
- * Nav links are absolutely centered in the header.
- * Route links to /about, /booking, /contact.
+ * /src/components/Header/LandingHeader.tsx
+ * Fast X Nexus — Global Floating Glassmorphic Island Header
+ *
+ * Implements the global floating island design language:
+ * - Floating curved glass pill with luminous frosted backdrop (bg-white/85 backdrop-blur-2xl)
+ * - 3D Interactive Volumetric "F" Emblem as mobile drawer trigger & brand anchor
+ * - High-contrast industrial typography with zero dark-on-dark muddying
+ * - Centered desktop navigation pills with responsive viewport adaptation
+ * - Dynamic auth status pill (Dashboard if logged in, Sign In if guest)
+ * - Glassmorphic mobile drawer with navigation grid & emergency dispatch hotline
  */
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Logo } from '@/components/ui/Logo';
+import { createBrowserClient } from '@/lib/supabase/client';
+import { ThreeDimensionalFLogo } from '@/components/ui/ThreeDimensionalFLogo';
 
 export function LandingHeader() {
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  const supabase = createBrowserClient();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setIsAuthenticated(true);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        setUserRole(profile?.role ?? 'customer');
+      } else {
+        setIsAuthenticated(false);
+        setUserRole(null);
+      }
+    };
+
+    checkAuth();
+  }, [supabase]);
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -28,68 +61,114 @@ export function LandingHeader() {
   }, [isMobileMenuOpen]);
 
   const navLinks = [
-    { label: 'About', href: '/about', icon: 'corporate_fare' },
-    { label: 'Booking', href: '/booking', icon: 'local_shipping' },
-    { label: 'Tracking', href: '/tracking', icon: 'radar' },
-    { label: 'Fleet Specs', href: '/fleet', icon: 'grid_view' },
-    { label: 'Network Grid', href: '/network', icon: 'hub' },
-    { label: 'Solutions', href: '/solutions', icon: 'dataset' },
-    { label: 'Drive & Earn', href: '/onboarding/rider', icon: 'two_wheeler' },
-    { label: 'Contact', href: '/contact', icon: 'support_agent' },
+    { label: 'About', href: '/about', icon: 'corporate_fare', showOnDesktop: 'always' },
+    { label: 'Booking', href: '/booking', icon: 'local_shipping', showOnDesktop: 'always' },
+    { label: 'Tracking', href: '/tracking', icon: 'radar', showOnDesktop: 'always' },
+    { label: 'Drive & Earn', href: '/onboarding/rider', icon: 'two_wheeler', showOnDesktop: 'lg' },
+    { label: 'Fleet', href: '/fleet', icon: 'grid_view', showOnDesktop: 'xl' },
+    { label: 'Network', href: '/network', icon: 'hub', showOnDesktop: 'xl' },
+    { label: 'Solutions', href: '/solutions', icon: 'dataset', showOnDesktop: 'xl' },
+    { label: 'Contact', href: '/contact', icon: 'support_agent', showOnDesktop: 'always' },
   ];
 
+  const getDashboardHref = () => {
+    if (userRole === 'admin') return '/admin';
+    if (userRole === 'rider') return '/rider';
+    return '/customer';
+  };
+
   return (
-    <header className="bg-[var(--color-surface-elevated)] sticky top-0 w-full h-[72px] z-50 border-b border-[var(--color-border)]">
-      <div className="relative flex items-center h-full px-4 sm:px-6 lg:px-8 max-w-screen-2xl mx-auto">
-        {/* Brand — Left-aligned */}
-        <Link 
-          href="/" 
-          onClick={() => setIsMobileMenuOpen(false)}
-          className="relative h-full py-2 flex items-center shrink-0 w-32 sm:w-40 md:w-48 max-w-[280px]"
-        >
-          <Logo width="w-full" height="h-full" />
-        </Link>
+    <>
+      <header className="fixed top-0 left-0 right-0 w-full z-50 px-2.5 pt-2.5 sm:px-4 sm:pt-3 pointer-events-none">
+        <div className="max-w-6xl mx-auto h-11 sm:h-12 rounded-full bg-white/85 backdrop-blur-2xl border border-white/90 shadow-[0_8px_30px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.05)] px-2.5 sm:px-4 flex items-center justify-between pointer-events-auto transition-all">
+          
+          {/* Left: 3D Volumetric F Emblem & Brand Title */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+            <ThreeDimensionalFLogo
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              size={32}
+              isOpen={isMobileMenuOpen}
+            />
 
-        {/* Desktop Navigation — Absolutely centered in the header */}
-        <nav className="hidden md:flex items-center gap-6 lg:gap-8 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          {[
-            { label: 'About', href: '/about' },
-            { label: 'Booking', href: '/booking' },
-            { label: 'Drive & Earn', href: '/onboarding/rider' },
-            { label: 'Contact', href: '/contact' },
-          ].map((item) => (
             <Link
-              key={item.label}
-              href={item.href}
-              className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors duration-200 relative group py-2 whitespace-nowrap min-h-[44px] inline-flex items-center"
+              href="/"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-1 sm:gap-1.5 min-w-0 group"
+              title="Fast X Nexus Home"
             >
-              <span>{item.label}</span>
-              <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--color-primary)] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-200" />
+              <span className="sm:hidden font-black text-xs tracking-wider text-slate-950 font-sans whitespace-nowrap">
+                FAST X
+              </span>
+              <span className="hidden sm:inline font-black text-sm tracking-wider text-slate-950 font-sans whitespace-nowrap group-hover:text-emerald-800 transition-colors">
+                FAST X <span className="text-emerald-700 font-black">NEXUS</span>
+              </span>
             </Link>
-          ))}
-        </nav>
+          </div>
 
-        {/* Sign In & Mobile Menu Toggle */}
-        <div className="ml-auto flex items-center shrink-0 gap-2 sm:gap-3">
-          <Link
-            href="/login"
-            className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white px-4 sm:px-5 py-2 rounded-none text-xs font-bold uppercase tracking-wider transition-all duration-200 min-h-[44px] flex items-center justify-center whitespace-nowrap"
-          >
-            Sign In
-          </Link>
-          <button 
-            type="button"
-            className="md:hidden flex items-center justify-center p-2 text-[var(--color-text)] hover:text-[var(--color-primary)] cursor-pointer min-w-[44px] min-h-[44px]"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label={isMobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'}
-            aria-expanded={isMobileMenuOpen}
-          >
-            <span className="material-symbols-outlined text-2xl">{isMobileMenuOpen ? 'close' : 'menu'}</span>
-          </button>
+          {/* Center: Desktop Navigation Pills */}
+          <nav className="hidden md:flex items-center gap-1 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
+            {navLinks.map((item) => {
+              const isActive = pathname === item.href;
+              const visibilityClass =
+                item.showOnDesktop === 'always'
+                  ? 'inline-flex'
+                  : item.showOnDesktop === 'lg'
+                  ? 'hidden lg:inline-flex'
+                  : 'hidden xl:inline-flex';
+
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`${visibilityClass} items-center text-[10.5px] lg:text-[11px] font-bold uppercase tracking-wider px-2.5 lg:px-3 py-1 rounded-full transition-all duration-150 whitespace-nowrap ${
+                    isActive
+                      ? 'bg-emerald-700 text-white shadow-xs'
+                      : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100/90'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Right: Dynamic Auth Pill & Mobile Toggle */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {isAuthenticated ? (
+              <Link
+                href={getDashboardHref()}
+                className="px-3 sm:px-4 py-1 sm:py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all duration-200 shadow-xs flex items-center gap-1.5 whitespace-nowrap"
+              >
+                <span className="material-symbols-outlined text-[13px] sm:text-[15px]">dashboard</span>
+                <span>Dashboard</span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="px-3 sm:px-4 py-1 sm:py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all duration-200 shadow-xs flex items-center gap-1 whitespace-nowrap"
+              >
+                <span>Sign In</span>
+                <span className="material-symbols-outlined text-[13px] sm:text-[15px]">arrow_forward</span>
+              </Link>
+            )}
+
+            {/* Mobile Hamburger Toggle Button (Screen < md) */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden w-7.5 h-7.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center transition-colors cursor-pointer border border-slate-200/90"
+              aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isMobileMenuOpen}
+            >
+              <span className="material-symbols-outlined text-[17px]">
+                {isMobileMenuOpen ? 'close' : 'menu'}
+              </span>
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Drawer Navigation (Fixed Overlay) */}
+      {/* Mobile Drawer Navigation (Frosted Glass Island Dropdown) */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -99,66 +178,89 @@ export function LandingHeader() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="md:hidden fixed inset-0 top-[72px] bg-black/40 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-slate-950/45 backdrop-blur-xs z-40 pointer-events-auto"
               aria-hidden="true"
             />
 
-            {/* Slide-down Drawer */}
+            {/* Floating Glassmorphic Menu Card */}
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="md:hidden fixed inset-x-0 top-[72px] max-h-[calc(100vh-72px)] bg-white border-b-2 border-[var(--color-primary)] shadow-2xl z-50 overflow-y-auto flex flex-col justify-between"
+              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed top-14 sm:top-16 inset-x-2.5 sm:inset-x-4 max-w-md mx-auto bg-white/95 backdrop-blur-2xl border border-white/90 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.18)] z-50 overflow-hidden flex flex-col pointer-events-auto"
             >
-              {/* Nav Links Grid */}
-              <div className="p-4 divide-y divide-gray-100">
-                <div className="pb-2">
-                  <p className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-[var(--color-primary)] px-3 mb-1">
+              {/* Drawer Brand & Close Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/70">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                  <p className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-emerald-800">
                     Logistics Navigation
                   </p>
                 </div>
-                <div className="grid grid-cols-1 gap-1 pt-2">
-                  {navLinks.map((item) => (
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-600 hover:text-slate-950 flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label="Close menu"
+                >
+                  <span className="material-symbols-outlined text-[16px]">close</span>
+                </button>
+              </div>
+
+              {/* Nav Links Grid */}
+              <div className="p-3 grid grid-cols-2 gap-1.5 max-h-[60vh] overflow-y-auto">
+                {navLinks.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
                     <Link
                       key={item.label}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-3 py-3 text-sm font-bold uppercase tracking-wider text-[#0F172A] hover:text-[var(--color-primary)] hover:bg-[#F8FAFC] active:bg-[#F1F5F9] transition-colors rounded-none min-h-[48px]"
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all min-h-[44px] ${
+                        isActive
+                          ? 'bg-emerald-700 text-white shadow-xs'
+                          : 'text-slate-800 hover:text-emerald-800 hover:bg-slate-100/90 active:bg-slate-200'
+                      }`}
                     >
-                      <span className="material-symbols-outlined text-[var(--color-primary)] text-xl" aria-hidden="true">
+                      <span
+                        className={`material-symbols-outlined text-lg ${
+                          isActive ? 'text-white' : 'text-emerald-700'
+                        }`}
+                        aria-hidden="true"
+                      >
                         {item.icon}
                       </span>
-                      <span>{item.label}</span>
+                      <span className="truncate">{item.label}</span>
                     </Link>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
 
-              {/* Mobile Drawer Quick-Action Footer */}
-              <div className="p-4 bg-[#F8FAFC] border-t border-[var(--color-border)] space-y-3">
+              {/* Drawer Quick Actions Footer */}
+              <div className="p-3.5 bg-slate-50 border-t border-slate-200/70 space-y-2">
                 {/* Direct Dispatch Hotline Pill */}
                 <a
                   href="tel:+2349014030047"
-                  className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-emerald-50 border border-emerald-200 text-[#006B3F] font-mono text-xs font-bold uppercase tracking-wider min-h-[48px] hover:bg-emerald-100 transition-colors"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-[11px] font-bold uppercase tracking-wider rounded-xl min-h-[44px] hover:bg-emerald-100 transition-colors shadow-2xs"
                 >
-                  <span className="material-symbols-outlined text-base text-emerald-600" aria-hidden="true">call</span>
+                  <span className="material-symbols-outlined text-sm text-emerald-700" aria-hidden="true">call</span>
                   <span>Call Dispatch: +234 901 403 0047</span>
                 </a>
 
                 {/* Sign In & Admin Access buttons */}
                 <div className="grid grid-cols-2 gap-2">
                   <Link
-                    href="/login"
+                    href={isAuthenticated ? getDashboardHref() : '/login'}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-center py-2.5 px-3 bg-[var(--color-primary)] text-white text-xs font-mono font-bold uppercase tracking-wider min-h-[44px] hover:bg-[var(--color-primary-hover)] transition-colors text-center"
+                    className="flex items-center justify-center py-2 px-3 bg-emerald-700 text-white text-[11px] font-mono font-bold uppercase tracking-wider rounded-xl min-h-[40px] hover:bg-emerald-800 transition-colors text-center shadow-2xs"
                   >
-                    Client Sign In
+                    {isAuthenticated ? 'My Dashboard' : 'Client Sign In'}
                   </Link>
                   <Link
                     href="/login/admin"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-center py-2.5 px-3 bg-white border border-[#CBD5E1] text-[#0F172A] text-xs font-mono font-bold uppercase tracking-wider min-h-[44px] hover:bg-[#F1F5F9] transition-colors text-center"
+                    className="flex items-center justify-center py-2 px-3 bg-white border border-slate-300 text-slate-800 text-[11px] font-mono font-bold uppercase tracking-wider rounded-xl min-h-[40px] hover:bg-slate-100 transition-colors text-center shadow-2xs"
                   >
                     Admin Portal
                   </Link>
@@ -168,6 +270,6 @@ export function LandingHeader() {
           </>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 }
