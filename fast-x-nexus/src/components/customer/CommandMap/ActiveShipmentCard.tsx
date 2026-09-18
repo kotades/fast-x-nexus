@@ -8,7 +8,7 @@
  * Includes interactive DELETE / CANCEL order button for instant sandbox resetting.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/customer/ui/Badge';
 import { Button } from '@/components/customer/ui/Button';
@@ -143,10 +143,34 @@ export function ActiveShipmentCard({ shipment, pickupResolution, dropoffResoluti
     fetchRiderInfo();
   }, [shipment.riderId, supabase]);
 
-  const handleCopyPin = (pin: string) => {
-    navigator.clipboard.writeText(pin);
+  const [pinToast, setPinToast] = useState<string | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleCopyPin = (pin: string, label: string = 'PIN copied') => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(pin).catch(() => {});
+    }
     setCopiedPin(pin);
-    setTimeout(() => setCopiedPin(null), 2000);
+    setPinToast(label);
+    setTimeout(() => {
+      setCopiedPin(null);
+      setPinToast(null);
+    }, 2000);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    if (deltaY < -25) {
+      setIsCollapsed(false); // slide up -> expand
+    } else if (deltaY > 25) {
+      setIsCollapsed(true); // slide down -> minimize
+    }
+    touchStartY.current = null;
   };
 
   const performDelete = async () => {
@@ -215,22 +239,22 @@ export function ActiveShipmentCard({ shipment, pickupResolution, dropoffResoluti
   }
 
   return (
-    <div className="absolute bottom-3 left-2.5 right-2.5 sm:bottom-4 sm:left-4 sm:right-auto z-20 pointer-events-none max-w-md sm:w-full">
-      {/* Sleek Tactile Drag Handle Pill to Toggle Expand / Collapse */}
-      <div className="flex justify-center -mb-2 relative z-20 pointer-events-auto">
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="px-3.5 py-1 bg-surface-elevated/95 backdrop-blur-md border border-border border-b-0 rounded-t-lg shadow-sm text-[9px] font-black uppercase tracking-wider text-text-muted hover:text-primary flex items-center gap-1 transition-all cursor-pointer select-none"
-          aria-label={isCollapsed ? 'Expand route details' : 'Collapse route details'}
-        >
-          <span className="material-symbols-outlined text-[14px]">
-            {isCollapsed ? 'expand_less' : 'expand_more'}
-          </span>
-          <span>
-            {isCollapsed ? 'TAP TO EXPAND ROUTE DETAILS' : 'TAP TO MINIMIZE TO MAP'}
-          </span>
-        </button>
-      </div>
+    <div className="absolute bottom-18 left-2.5 right-2.5 sm:bottom-4 sm:left-4 sm:right-auto z-20 pointer-events-none max-w-md sm:w-[420px]">
+      {/* Toast Notification for Copied PIN */}
+      <AnimatePresence>
+        {pinToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.18 }}
+            className="absolute -top-10 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-md text-white text-[11px] font-mono font-bold px-3 py-1.5 rounded-full shadow-xl flex items-center gap-1.5 pointer-events-none whitespace-nowrap border border-slate-700"
+          >
+            <span className="material-symbols-outlined text-sm text-emerald-400">check_circle</span>
+            <span>{pinToast}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -241,33 +265,69 @@ export function ActiveShipmentCard({ shipment, pickupResolution, dropoffResoluti
           stiffness: 250,
           mass: 0.9,
         }}
-        className="pointer-events-auto w-full max-h-[calc(100vh-140px)] overflow-y-auto bg-surface-elevated/95 backdrop-blur-xl border border-border border-l-4 border-l-primary shadow-2xl font-mono text-text p-3 sm:p-4"
+        className={`pointer-events-auto w-full max-h-[calc(100vh-140px)] overflow-y-auto bg-surface-elevated/98 backdrop-blur-xl border border-border border-l-4 border-l-primary rounded-xl shadow-2xl font-mono text-text p-2.5 sm:p-3 transition-all ${
+          isCollapsed ? 'pr-12 sm:pr-3' : ''
+        }`}
       >
-        {/* Header */}
-        <div className={`flex justify-between items-center gap-2 ${isCollapsed ? 'mb-0' : 'mb-3'}`}>
-          <div 
-            className="cursor-pointer select-none"
-            onClick={() => setIsCollapsed((prev) => !prev)}
-            title="Click to toggle details"
-          >
-            <p className="text-[9px] text-primary uppercase font-black tracking-wider">
-              Active Waybill
-            </p>
-            <h2 className="text-sm sm:text-base font-black text-text tracking-tight font-mono">
-              {shipment.trackingCode}
-            </h2>
+        {/* Sleek Minimal Drag Handle Pill */}
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="w-full flex items-center justify-center py-1 cursor-pointer focus:outline-none group select-none"
+          onClick={() => setIsCollapsed((prev) => !prev)}
+          aria-label={isCollapsed ? 'Expand route details' : 'Collapse route details'}
+        >
+          <span className="w-8 h-1 bg-slate-300 rounded-full transition-colors group-hover:bg-slate-400" />
+        </div>
+
+        {/* Waybill Summary Header Row (Matching Rider Route Map) */}
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className={`flex items-center justify-between gap-1.5 cursor-pointer select-none ${
+            isCollapsed ? 'mb-0.5' : 'mb-2.5 pb-2 border-b border-border'
+          }`}
+          onClick={() => setIsCollapsed((prev) => !prev)}
+        >
+          {/* Left: Waybill Identifier Badge + Route ETA Preview */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 text-[9.5px] font-black uppercase tracking-wider font-mono whitespace-nowrap">
+                {shipment.trackingCode.startsWith('FX-') ? shipment.trackingCode : `FX-${shipment.trackingCode}`}
+              </span>
+              <Badge variant={getBadgeVariant(shipment.status)}>
+                {getStatusLabel(shipment.status)}
+              </Badge>
+            </div>
+            <div className="text-[9px] text-text-muted flex items-center gap-0.5 mt-0.5 font-mono truncate leading-tight">
+              <span className="material-symbols-outlined text-[11px] text-primary shrink-0" aria-hidden="true">
+                {isPickedUp ? 'flag' : 'location_on'}
+              </span>
+              <span className="truncate">
+                {isPickedUp
+                  ? `${shipment.destination?.split(',')[0] || 'Destination'}${riderProximity ? ` • ${riderProximity.distanceKm}km (~${riderProximity.etaMinutes}m)` : ''}`
+                  : `${shipment.origin?.split(',')[0] || 'Origin'}${riderProximity ? ` • ${riderProximity.distanceKm}km (~${riderProximity.etaMinutes}m)` : ''}`}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Badge variant={getBadgeVariant(shipment.status)}>
-              {getStatusLabel(shipment.status)}
-            </Badge>
-            {isCollapsed && (
+
+          {/* Right: Collapsed Details Button or Expand Toggle Indicator */}
+          <div className="flex items-center gap-1 shrink-0">
+            {isCollapsed ? (
               <button
-                onClick={onDetails}
-                className="px-2 py-1 bg-surface-dim hover:bg-surface border border-border text-[9px] font-black uppercase tracking-wider text-text cursor-pointer transition-colors"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDetails?.();
+                }}
+                className="px-2 py-1 bg-surface-dim hover:bg-surface border border-border text-[9px] font-black uppercase tracking-wider text-text cursor-pointer transition-colors rounded"
               >
                 Details
               </button>
+            ) : (
+              <span className="material-symbols-outlined text-base text-text-muted">
+                expand_less
+              </span>
             )}
           </div>
         </div>
@@ -289,7 +349,7 @@ export function ActiveShipmentCard({ shipment, pickupResolution, dropoffResoluti
               const isDropoffApprox = dRes ? dRes.isEstimatedVicinity : false;
 
               return (
-                <div className="bg-surface-low border border-border p-2.5 mb-3">
+                <div className="bg-surface-low border border-border rounded-lg p-2.5 mb-2.5">
                   <div className="flex items-start gap-2">
                     <span className="material-symbols-outlined text-primary text-sm mt-0.5" aria-hidden="true">
                       radio_button_checked
@@ -342,12 +402,12 @@ export function ActiveShipmentCard({ shipment, pickupResolution, dropoffResoluti
             })()}
 
             {/* Progress Bar */}
-            <div className="mb-3">
+            <div className="mb-2.5">
               <div className="flex justify-between text-[10px] text-text-muted mb-1">
                 <span>Lifecycle Progress</span>
                 <span className="font-bold text-primary">{shipment.progress}%</span>
               </div>
-              <div className="w-full h-1.5 bg-surface-low border border-border overflow-hidden">
+              <div className="w-full h-1.5 bg-surface-low border border-border overflow-hidden rounded-full">
                 <motion.div
                   className="h-full bg-primary"
                   initial={{ width: 0 }}
@@ -357,53 +417,61 @@ export function ActiveShipmentCard({ shipment, pickupResolution, dropoffResoluti
               </div>
             </div>
 
-            {/* Stage 1: Pickup POP Custody PIN */}
+            {/* Stage 1: Pickup POP Custody PIN — Tap Anywhere to Copy */}
             {shipment.status === 'ASSIGNED' && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="mb-3 p-2.5 bg-amber-500/10 border border-amber-500/30 flex items-center justify-between"
+                onClick={() => handleCopyPin(pickupPin, 'Pickup PIN copied')}
+                className="mb-2.5 p-2.5 bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/30 rounded-lg flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all group select-none"
+                title="Tap anywhere to copy Pickup PIN"
               >
                 <div>
-                  <p className="text-[9px] uppercase font-black text-amber-700">Stage 1: Pickup PIN (POP)</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[9px] uppercase font-black text-amber-700">Stage 1: Pickup PIN (POP)</p>
+                    <span className="text-[8px] font-bold bg-amber-500/20 text-amber-800 px-1 py-0.2 rounded font-mono uppercase tracking-wider">
+                      Tap to copy
+                    </span>
+                  </div>
                   <p className="text-[9px] text-amber-900/80">Share with rider at parcel handoff</p>
                 </div>
-                <button
-                  onClick={() => handleCopyPin(pickupPin)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 bg-surface border border-amber-500/40 hover:border-amber-600 transition-colors cursor-pointer group"
-                >
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-surface border border-amber-500/40 group-hover:border-amber-600 transition-colors shadow-xs rounded">
                   <span className="text-base font-black tracking-widest text-amber-700 font-mono">
                     {pickupPin}
                   </span>
                   <span className="material-symbols-outlined text-xs text-amber-600 group-hover:text-amber-800">
                     {copiedPin === pickupPin ? 'check' : 'content_copy'}
                   </span>
-                </button>
+                </div>
               </motion.div>
             )}
 
-            {/* Stage 2: Delivery POD Custody PIN */}
+            {/* Stage 2: Delivery POD Custody PIN — Tap Anywhere to Copy */}
             {['PICKED_UP', 'IN_TRANSIT'].includes(shipment.status) && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="mb-3 p-2.5 bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between"
+                onClick={() => handleCopyPin(deliveryPin, 'Delivery PIN copied')}
+                className="mb-2.5 p-2.5 bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/30 rounded-lg flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all group select-none"
+                title="Tap anywhere to copy Delivery PIN"
               >
                 <div>
-                  <p className="text-[9px] uppercase font-black text-emerald-700">Stage 2: Delivery PIN (POD)</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[9px] uppercase font-black text-emerald-700">Stage 2: Delivery PIN (POD)</p>
+                    <span className="text-[8px] font-bold bg-emerald-500/20 text-emerald-800 px-1 py-0.2 rounded font-mono uppercase tracking-wider">
+                      Tap to copy
+                    </span>
+                  </div>
                   <p className="text-[9px] text-emerald-900/80">Share upon parcel delivery</p>
                 </div>
-                <button
-                  onClick={() => handleCopyPin(deliveryPin)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 bg-surface border border-emerald-500/40 hover:border-emerald-600 transition-colors cursor-pointer group"
-                >
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-surface border border-emerald-500/40 group-hover:border-emerald-600 transition-colors shadow-xs rounded">
                   <span className="text-base font-black tracking-widest text-emerald-700 font-mono">
                     {deliveryPin}
                   </span>
                   <span className="material-symbols-outlined text-xs text-emerald-600 group-hover:text-emerald-800">
                     {copiedPin === deliveryPin ? 'check' : 'content_copy'}
                   </span>
-                </button>
+                </div>
               </motion.div>
             )}
 

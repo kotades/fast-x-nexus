@@ -219,7 +219,7 @@ export function LandingHeader() {
               </div>
 
               {/* Drawer Quick Actions Footer */}
-              <div className="p-3.5 bg-slate-50 border-t border-slate-200/70 space-y-2">
+              <div className="p-3.5 bg-slate-50 border-t border-slate-200/70">
                 {/* Direct Dispatch Hotline Pill */}
                 <a
                   href="tel:+2349014030047"
@@ -228,24 +228,6 @@ export function LandingHeader() {
                   <span className="material-symbols-outlined text-sm text-emerald-700" aria-hidden="true">call</span>
                   <span>Call Dispatch: +234 901 403 0047</span>
                 </a>
-
-                {/* Sign In & Admin Access buttons */}
-                <div className="grid grid-cols-2 gap-2">
-                  <Link
-                    href={isAuthenticated ? getDashboardHref() : '/login'}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-center py-2 px-3 bg-emerald-700 text-white text-[11px] font-mono font-bold uppercase tracking-wider rounded-xl min-h-[40px] hover:bg-emerald-800 transition-colors text-center shadow-2xs"
-                  >
-                    {isAuthenticated ? 'My Dashboard' : 'Client Sign In'}
-                  </Link>
-                  <Link
-                    href="/login/admin"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-center py-2 px-3 bg-white border border-slate-300 text-slate-800 text-[11px] font-mono font-bold uppercase tracking-wider rounded-xl min-h-[40px] hover:bg-slate-100 transition-colors text-center shadow-2xs"
-                  >
-                    Admin Portal
-                  </Link>
-                </div>
               </div>
             </motion.div>
           </>

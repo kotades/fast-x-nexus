@@ -102,6 +102,21 @@ export function RiderRouteMap() {
   const [isCardCollapsed, setIsCardCollapsed] = useState(true);
   const [isPending, startTransition] = useTransition();
 
+  const cardTouchStartY = useRef<number | null>(null);
+  const handleCardTouchStart = (e: React.TouchEvent) => {
+    cardTouchStartY.current = e.touches[0].clientY;
+  };
+  const handleCardTouchEnd = (e: React.TouchEvent) => {
+    if (cardTouchStartY.current === null) return;
+    const deltaY = e.changedTouches[0].clientY - cardTouchStartY.current;
+    if (deltaY < -25) {
+      setIsCardCollapsed(false); // slide up -> expand
+    } else if (deltaY > 25) {
+      setIsCardCollapsed(true); // slide down -> minimize
+    }
+    cardTouchStartY.current = null;
+  };
+
   const { navigateTo } = useRiderDashboard();
 
   const loadData = async () => {
@@ -579,6 +594,8 @@ export function RiderRouteMap() {
               {/* Collapse/Expand Minimal Drag Handle Bar */}
               <button
                 type="button"
+                onTouchStart={handleCardTouchStart}
+                onTouchEnd={handleCardTouchEnd}
                 onClick={() => setIsCardCollapsed((prev) => !prev)}
                 className="w-full flex items-center justify-center py-0.5 cursor-pointer focus:outline-none group"
                 aria-label={isCardCollapsed ? 'Expand route details' : 'Collapse route details'}
@@ -588,6 +605,8 @@ export function RiderRouteMap() {
 
               {/* Waybill Summary Header Row */}
               <div
+                onTouchStart={handleCardTouchStart}
+                onTouchEnd={handleCardTouchEnd}
                 className="flex items-center justify-between gap-1.5 cursor-pointer select-none"
                 onClick={() => setIsCardCollapsed((prev) => !prev)}
               >
