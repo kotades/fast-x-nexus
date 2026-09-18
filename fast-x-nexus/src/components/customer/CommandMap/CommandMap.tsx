@@ -158,10 +158,10 @@ export function CommandMap() {
         filters={filters}
       />
 
-      {/* Top Floating Control Bar — Single Line on Mobile */}
-      <div className="absolute top-2.5 left-2.5 right-2.5 sm:top-5 sm:left-5 sm:right-5 z-20 flex items-center justify-between gap-1.5 sm:gap-3 pointer-events-none">
-        {/* Left: Mobile Inline Zoom Controls & Badges */}
-        <div className="flex items-center gap-1.5 pointer-events-auto min-w-0">
+      {/* Top Floating Control Bar — Positioned below floating Header navbar */}
+      <div className="absolute top-16 left-2.5 right-2.5 sm:top-18 sm:left-5 sm:right-5 z-20 flex items-center justify-between gap-1.5 sm:gap-3 pointer-events-none">
+        {/* Left: Mobile Inline Zoom Controls, Badges, & Layer Filter */}
+        <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto min-w-0">
           {/* Mobile Zoom [-] [+] Buttons */}
           <div className="sm:hidden flex items-center bg-[#ffffff]/95 backdrop-blur-md border border-border shadow-md rounded overflow-hidden shrink-0">
             <button
@@ -193,14 +193,6 @@ export function CommandMap() {
               <span className="text-text-muted uppercase font-bold text-[8.5px]">Active:</span>
               <span className="font-black text-text">{displayActiveCount}</span>
             </div>
-
-            {activeShipment && activeShipment.status !== 'DELIVERED' && activeShipment.status !== 'CANCELLED' && (
-              <div className="bg-[#ffffff]/95 backdrop-blur-md border border-border border-l-2 border-l-amber-500 px-2 py-1.5 shadow-md truncate max-w-[125px]">
-                <span className="font-black text-amber-800 uppercase tracking-tight text-[8.5px] truncate block">
-                  {activeShipment.status.replace(/_/g, ' ')}
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Desktop spacer so default zoom controls aren't blocked */}
@@ -230,15 +222,12 @@ export function CommandMap() {
               </div>
             )}
           </motion.div>
-        </div>
 
-        {/* Right: Map Layers & Live Feed Badge (Live feed hidden on mobile) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto font-mono text-xs shadow-xl shrink-0">
           {/* Map Layer Filter Dropdown */}
-          <div className="relative" ref={filterRef}>
+          <div className="relative shrink-0" ref={filterRef}>
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`h-8 px-2 sm:h-auto sm:p-2 bg-[#ffffff]/95 backdrop-blur-md border border-border transition-colors cursor-pointer flex items-center justify-center ${
+              className={`h-8 px-2 sm:h-auto sm:p-2 bg-[#ffffff]/95 backdrop-blur-md border border-border transition-colors cursor-pointer flex items-center justify-center shadow-md ${
                 isFilterOpen ? 'text-primary border-primary' : 'text-text hover:border-text-dim'
               }`}
               title="Map Filters"
@@ -253,7 +242,7 @@ export function CommandMap() {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-10 sm:top-11 right-0 w-56 bg-surface-elevated border border-border shadow-2xl p-3 flex flex-col gap-3 z-50 font-mono text-xs"
+                  className="absolute top-10 sm:top-11 left-0 w-56 bg-surface-elevated border border-border shadow-2xl p-3 flex flex-col gap-3 z-50 font-mono text-xs"
                 >
                   <div className="flex justify-between items-center border-b border-border pb-1.5">
                     <h3 className="text-[10px] font-black uppercase tracking-widest text-text">
@@ -303,8 +292,8 @@ export function CommandMap() {
             </AnimatePresence>
           </div>
 
-          {/* Live Feed Indicator — Hidden on mobile to free up space */}
-          <div className="hidden sm:flex bg-[#ffffff]/95 backdrop-blur-md border border-border px-2.5 py-2 items-center gap-1.5">
+          {/* Live Feed Indicator (Desktop) */}
+          <div className="hidden sm:flex bg-[#ffffff]/95 backdrop-blur-md border border-border px-2.5 py-2 items-center gap-1.5 shadow-md">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />

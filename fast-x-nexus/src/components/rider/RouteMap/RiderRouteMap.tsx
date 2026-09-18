@@ -569,7 +569,7 @@ export function RiderRouteMap() {
       )}
 
       {/* Floating Bottom Dispatch Drawer */}
-      <div className={`mt-auto relative ${isCardCollapsed ? 'z-20 pl-2 pr-12 sm:px-4' : 'z-40 px-2 sm:px-4'} w-full pb-1.5 sm:pb-3 max-w-3xl mx-auto pointer-events-auto`}>
+      <div className={`mt-auto relative ${isCardCollapsed ? 'z-20 px-2 sm:px-4' : 'z-40 px-2 sm:px-4'} w-full pb-0.5 sm:pb-3 max-w-3xl mx-auto pointer-events-auto`}>
         <AnimatePresence mode="wait">
           {loading ? (
             <motion.div

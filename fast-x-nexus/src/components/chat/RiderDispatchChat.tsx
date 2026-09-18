@@ -204,16 +204,42 @@ export function RiderDispatchChat({ riderId, orderId, defaultOpen = false }: Rid
         />
       )}
 
+      {/* Floating Comms / Dispatch Chat Trigger — Placed in Top-Right Corner below Map Controls */}
       <div
-        className={`fixed ${
-          isOpen
-            ? 'z-[90] bottom-3 right-3 sm:bottom-4 sm:right-4'
-            : 'z-[45] bottom-[60px] right-2.5 sm:bottom-4 sm:right-4'
-        } flex flex-col items-end gap-2 pointer-events-auto`}
+        className={`fixed top-[96px] right-2.5 sm:top-[112px] sm:right-4 z-[35] pointer-events-auto ${
+          isOpen ? 'hidden sm:flex' : 'flex'
+        }`}
       >
-        {/* Radio Comms Drawer */}
-        <AnimatePresence>
-          {isOpen && (
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsOpen((prev) => !prev)}
+          className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/95 hover:bg-white text-slate-800 border border-slate-300/90 shadow-md backdrop-blur-md flex items-center justify-center cursor-pointer transition-all active:scale-95"
+          aria-label="Toggle Dispatch Chat"
+          title="Fleet Comms / Dispatch Chat"
+        >
+          <span className="material-symbols-outlined text-base sm:text-lg text-emerald-600">
+            {isOpen ? 'close' : 'radio'}
+          </span>
+
+          {/* Unread Alert Badge */}
+          {unreadCount > 0 && !isOpen && (
+            <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-600 text-white text-[8px] font-black font-mono rounded-full flex items-center justify-center border border-white shadow-xs">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+
+          {/* Tactical Pulse on Unread */}
+          {!isOpen && unreadCount > 0 && (
+            <span className="absolute inset-0 rounded-xl border-2 border-red-500 animate-ping opacity-60 pointer-events-none" />
+          )}
+        </motion.button>
+      </div>
+
+      {/* Radio Comms Drawer */}
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-[90] flex flex-col items-end pointer-events-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.92, y: 25 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -379,38 +405,10 @@ export function RiderDispatchChat({ riderId, orderId, defaultOpen = false }: Rid
                 <span>TX</span>
               </button>
             </form>
-          </motion.div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
-
-      {/* Floating Comms / Dispatch Chat Trigger */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setIsOpen((prev) => !prev)}
-        className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300/90 shadow-md ${
-          isOpen ? 'hidden sm:flex' : 'flex'
-        } items-center justify-center cursor-pointer transition-all active:scale-95`}
-        aria-label="Toggle Dispatch Chat"
-        title="Fleet Comms / Dispatch Chat"
-      >
-        <span className="material-symbols-outlined text-base sm:text-lg text-emerald-600">
-          {isOpen ? 'close' : 'forum'}
-        </span>
-
-        {/* Unread Alert Badge */}
-        {unreadCount > 0 && !isOpen && (
-          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-600 text-white text-[8px] font-black font-mono rounded-full flex items-center justify-center border border-white shadow-xs">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-
-        {/* Tactical Pulse on Unread */}
-        {!isOpen && unreadCount > 0 && (
-          <span className="absolute inset-0 rounded-xl border-2 border-red-500 animate-ping opacity-60 pointer-events-none" />
-        )}
-      </motion.button>
-    </div>
     </>
   );
 }
