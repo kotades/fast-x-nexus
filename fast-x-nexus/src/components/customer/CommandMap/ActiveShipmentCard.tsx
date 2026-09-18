@@ -239,7 +239,7 @@ export function ActiveShipmentCard({ shipment, pickupResolution, dropoffResoluti
   }
 
   return (
-    <div className="absolute bottom-18 left-2.5 right-2.5 sm:bottom-4 sm:left-4 sm:right-auto z-20 pointer-events-none max-w-md sm:w-[420px]">
+    <div className="absolute bottom-[58px] left-2 right-2 sm:bottom-4 sm:left-4 sm:right-auto z-20 pointer-events-none max-w-md sm:w-[420px]">
       {/* Toast Notification for Copied PIN */}
       <AnimatePresence>
         {pinToast && (

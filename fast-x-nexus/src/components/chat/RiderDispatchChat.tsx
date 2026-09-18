@@ -208,7 +208,7 @@ export function RiderDispatchChat({ riderId, orderId, defaultOpen = false }: Rid
         className={`fixed ${
           isOpen
             ? 'z-[90] bottom-3 right-3 sm:bottom-4 sm:right-4'
-            : 'z-[45] bottom-18 right-2.5 sm:bottom-4 sm:right-4'
+            : 'z-[45] bottom-[60px] right-2.5 sm:bottom-4 sm:right-4'
         } flex flex-col items-end gap-2 pointer-events-auto`}
       >
         {/* Radio Comms Drawer */}

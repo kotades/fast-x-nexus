@@ -223,7 +223,7 @@ export function FloatingSupportChat({ orderId, defaultOpen = false }: FloatingSu
       )}
 
       <div
-        className={`fixed bottom-18 right-2.5 sm:bottom-6 sm:right-6 ${
+        className={`fixed bottom-[60px] right-2.5 sm:bottom-6 sm:right-6 ${
           isOpen ? 'z-[90] bottom-3 right-3 sm:bottom-6 sm:right-6' : 'z-[35]'
         } flex flex-col items-end gap-2 sm:gap-3 pointer-events-auto ${
           isBookingWizardActive ? 'hidden sm:flex' : 'flex'
